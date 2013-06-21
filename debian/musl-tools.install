@@ -1,0 +1,3 @@
+#! /usr/bin/dh-exec
+usr/bin/*
+usr/lib/${MUSL_ARCH}/*.specs

@@ -1,0 +1,49 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+# debian/rules file for musl standard C library.
+#
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+# This has to be exported to make some magic below work.
+export DH_OPTIONS
+
+DEB_HOST_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+DEB_BUILD_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+DEB_HOST_GNU_CPU ?= $(shell dpkg-architecture -qDEB_HOST_GNU_CPU)
+DEB_HOST_ARCH_OS ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
+
+# Calculating musl based architecture
+ifeq ($(DEB_HOST_GNU_CPU),arm)
+  MUSL_ARCH=arm-$(DEB_HOST_ARCH_OS)-musleabihf
+else
+  MUSL_ARCH=$(DEB_HOST_GNU_CPU)-$(DEB_HOST_ARCH_OS)-musl
+endif
+
+# Cross build support (untested)
+ifeq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))
+  CC=cc
+else
+  CC=$(MUSL_ARCH)-gcc
+  CROSS_COMPILE=$(MUSL_ARCH)-
+  export CROSS_COMPILE
+endif
+
+export MUSL_ARCH
+export DEB_HOST_GNU_CPU
+export CC
+
+%:
+	dh $@
+
+debian/scripts/$(MUSL_ARCH).path: debian/scripts/config.path.in
+	sed 's/@MUSL_ARCH@/$(MUSL_ARCH)/g' $< > $@
+
+debian/scripts/ld-musl-config: debian/scripts/ld-musl-config.in
+	sed 's/@DEB_HOST_GNU_CPU@/$(DEB_HOST_GNU_CPU)/g' $< > $@
+	chmod +x debian/scripts/ld-musl-config
+
+override_dh_auto_configure: debian/scripts/$(MUSL_ARCH).path debian/scripts/ld-musl-config
+	dh_auto_configure -- --bindir=/usr/bin --libdir=/usr/lib/$(MUSL_ARCH) --includedir=/usr/include/$(MUSL_ARCH) --syslibdir=/lib --host=$(DEB_HOST_GNU_TYPE)
+

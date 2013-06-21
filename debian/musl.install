@@ -1,0 +1,4 @@
+#! /usr/bin/dh-exec
+usr/lib/${MUSL_ARCH}/libc.so lib/${MUSL_ARCH}
+../scripts/ld-musl-config usr/bin
+../scripts/${MUSL_ARCH}.path etc/ld-musl-${DEB_HOST_GNU_CPU}.d

@@ -1,0 +1,44 @@
+Source: musl
+Section: libs
+Priority: extra
+Maintainer: Kevin Bortis <pkgs@bortis.ch>
+Build-Depends: debhelper (>=9), dh-exec (>=0.6)
+Standards-Version: 3.9.4
+Homepage: http://git.musl-libc.org/
+Vcs-Git: https://github.com/wermut/musl.git
+Vcs-Browser: https://github.com/wermut/musl/
+
+Package: musl
+Architecture: any
+Depends: ${misc:Depends}
+Provides: libc
+Description: musl standard C library
+ musl is lightweight, fast, simple, free and strives
+ to be correct in the sense of standards-conformance
+ and safety.
+ .
+ This package contains the shared objects
+
+Package: musl-dev
+Architecture: any
+Depends: ${misc:Depends}, musl (= ${binary:Version})
+Provides: libc-dev
+Description: musl standard C library
+ musl is lightweight, fast, simple, free and strives
+ to be correct in the sense of standards-conformance
+ and safety.
+ .
+ This package contains the static linked libraries
+ and the include files.
+
+Package: musl-tools
+Architecture: any
+Description: musl standard C library
+ musl is lightweight, fast, simple, free and strives
+ to be correct in the sense of standards-conformance
+ and safety.
+ .
+ This package contains the gcc spec file and the
+ musl-gcc wraper script to make easy-to-deploy static
+ and minimally dynamic linked programs.
+

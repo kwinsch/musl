@@ -1,0 +1,5 @@
+musl (0.9.10-1) unstable; urgency=low
+
+  * Initial release (Closes: #713072)
+
+ -- Kevin Bortis <pkgs@bortis.ch>  Fri, 21 Jun 2013 17:12:20 +0200

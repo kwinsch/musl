@@ -1,0 +1,4 @@
+#! /usr/bin/dh-exec
+usr/lib/${MUSL_ARCH}/*.a
+usr/lib/${MUSL_ARCH}/*.o
+usr/include/${MUSL_ARCH}/*
