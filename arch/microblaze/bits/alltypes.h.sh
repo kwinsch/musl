@@ -21,6 +21,7 @@ TYPEDEF int ssize_t;
 TYPEDEF int ptrdiff_t;
 
 TYPEDEF __builtin_va_list va_list;
+TYPEDEF __builtin_va_list __isoc_va_list;
 
 #ifndef __cplusplus
 TYPEDEF int wchar_t;
@@ -104,7 +105,7 @@ TYPEDEF unsigned long long fsfilcnt_t;
 
 TYPEDEF void * timer_t;
 TYPEDEF int clockid_t;
-TYPEDEF unsigned long clock_t;
+TYPEDEF long clock_t;
 
 TYPEDEF struct { unsigned long __bits[128/sizeof(long)]; } sigset_t;
 TYPEDEF struct __siginfo siginfo_t;

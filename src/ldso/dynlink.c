@@ -403,16 +403,16 @@ error:
 	return 0;
 }
 
-static int path_open(const char *name, const char *search, char *buf, size_t buf_size)
+static int path_open(const char *name, const char *s, char *buf, size_t buf_size)
 {
-	const char *s=search, *z;
-	int l, fd;
+	size_t l;
+	int fd;
 	for (;;) {
-		while (*s==':') s++;
-		if (!*s) return -1;
-		z = strchr(s, ':');
-		l = z ? z-s : strlen(s);
-		snprintf(buf, buf_size, "%.*s/%s", l, s, name);
+		s += strspn(s, ":\n");
+		l = strcspn(s, ":\n");
+		if (l-1 >= INT_MAX) return -1;
+		if (snprintf(buf, buf_size, "%.*s/%s", (int)l, s, name) >= buf_size)
+			continue;
 		if ((fd = open(buf, O_RDONLY|O_CLOEXEC))>=0) return fd;
 		s += l;
 	}
@@ -478,10 +478,9 @@ static struct dso *load_library(const char *name)
 			if (!sys_path) {
 				FILE *f = fopen(ETC_LDSO_PATH, "rbe");
 				if (f) {
-					if (getline(&sys_path, (size_t[1]){0}, f) > 0) {
-						size_t l = strlen(sys_path);
-						if (l && sys_path[l-1]=='\n')
-							sys_path[l-1] = 0;
+					if (getdelim(&sys_path, (size_t[1]){0}, 0, f) <= 0) {
+						free(sys_path);
+						sys_path = "";
 					}
 					fclose(f);
 				}
@@ -693,6 +692,10 @@ static void do_init_fini(struct dso *p)
 		}
 		if (dyn[0] & (1<<DT_INIT))
 			((void (*)(void))(p->base + dyn[DT_INIT]))();
+		if (!need_locking && libc.threads_minus_1) {
+			need_locking = 1;
+			pthread_mutex_lock(&init_fini_lock);
+		}
 	}
 	if (need_locking) pthread_mutex_unlock(&init_fini_lock);
 }
@@ -740,13 +743,13 @@ void *__copy_tls(unsigned char *mem)
 void *__tls_get_addr(size_t *v)
 {
 	pthread_t self = __pthread_self();
-	if (self->dtv && v[0]<=(size_t)self->dtv[0] && self->dtv[v[0]])
+	if (v[0]<=(size_t)self->dtv[0] && self->dtv[v[0]])
 		return (char *)self->dtv[v[0]]+v[1];
 
 	/* Block signals to make accessing new TLS async-signal-safe */
 	sigset_t set;
 	pthread_sigmask(SIG_BLOCK, SIGALL_SET, &set);
-	if (self->dtv && v[0]<=(size_t)self->dtv[0] && self->dtv[v[0]]) {
+	if (v[0]<=(size_t)self->dtv[0] && self->dtv[v[0]]) {
 		pthread_sigmask(SIG_SETMASK, &set, 0);
 		return (char *)self->dtv[v[0]]+v[1];
 	}
@@ -759,10 +762,10 @@ void *__tls_get_addr(size_t *v)
 	for (p=head; p->tls_id != v[0]; p=p->next);
 
 	/* Get new DTV space from new DSO if needed */
-	if (!self->dtv || v[0] > (size_t)self->dtv[0]) {
+	if (v[0] > (size_t)self->dtv[0]) {
 		void **newdtv = p->new_dtv +
 			(v[0]+1)*sizeof(void *)*a_fetch_add(&p->new_dtv_idx,1);
-		if (self->dtv) memcpy(newdtv, self->dtv,
+		memcpy(newdtv, self->dtv,
 			((size_t)self->dtv[0]+1) * sizeof(void *));
 		newdtv[0] = (void *)v[0];
 		self->dtv = newdtv;
@@ -1269,6 +1272,18 @@ int __dladdr (void *addr, Dl_info *info)
 	return 0;
 }
 #endif
+
+int __dlinfo(void *dso, int req, void *res)
+{
+	if (invalid_dso_handle(dso)) return -1;
+	if (req != RTLD_DI_LINKMAP) {
+		snprintf(errbuf, sizeof errbuf, "Unsupported request %d", req);
+		errflag = 1;
+		return -1;
+	}
+	*(struct link_map **)res = dso;
+	return 0;
+}
 
 char *dlerror()
 {

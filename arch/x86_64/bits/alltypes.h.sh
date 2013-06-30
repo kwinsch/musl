@@ -20,6 +20,7 @@ TYPEDEF unsigned long size_t;
 TYPEDEF long ssize_t;
 TYPEDEF long ptrdiff_t;
 TYPEDEF __builtin_va_list va_list;
+TYPEDEF __builtin_va_list __isoc_va_list;
 
 #ifndef __cplusplus
 TYPEDEF int wchar_t;
@@ -94,12 +95,12 @@ TYPEDEF long off_t;
 TYPEDEF unsigned int mode_t;
 
 TYPEDEF unsigned long nlink_t;
-TYPEDEF unsigned long long ino_t;
+TYPEDEF unsigned long ino_t;
 TYPEDEF unsigned long dev_t;
 TYPEDEF long blksize_t;
-TYPEDEF long long blkcnt_t;
-TYPEDEF unsigned long long fsblkcnt_t;
-TYPEDEF unsigned long long fsfilcnt_t;
+TYPEDEF long blkcnt_t;
+TYPEDEF unsigned long fsblkcnt_t;
+TYPEDEF unsigned long fsfilcnt_t;
 
 TYPEDEF void * timer_t;
 TYPEDEF int clockid_t;

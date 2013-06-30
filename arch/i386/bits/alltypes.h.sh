@@ -22,8 +22,10 @@ TYPEDEF int ptrdiff_t;
 
 #if __GNUC__ >= 3
 TYPEDEF __builtin_va_list va_list;
+TYPEDEF __builtin_va_list __isoc_va_list;
 #else
 TYPEDEF struct __va_list * va_list;
+TYPEDEF struct __va_list * __isoc_va_list;
 #endif
 
 #ifndef __cplusplus
@@ -117,7 +119,7 @@ TYPEDEF unsigned long long fsfilcnt_t;
 
 TYPEDEF void * timer_t;
 TYPEDEF int clockid_t;
-TYPEDEF unsigned long clock_t;
+TYPEDEF long clock_t;
 
 TYPEDEF struct { unsigned long __bits[128/sizeof(long)]; } sigset_t;
 TYPEDEF struct __siginfo siginfo_t;
