@@ -30,8 +30,19 @@ else
   export CROSS_COMPILE
 endif
 
+# Clear variables to make musl happy
+CFLAGS=
+CPPFLAGS=
+LDFLAGS=
+export CFLAGS
+export CPPFLAGS
+export LDFLAGS
+
+# Export Variables for dh-exec script
 export MUSL_ARCH
 export DEB_HOST_GNU_CPU
+
+# Export Compiler to use
 export CC
 
 %:
@@ -45,7 +56,7 @@ debian/scripts/ld-musl-config: debian/scripts/ld-musl-config.in
 	chmod +x debian/scripts/ld-musl-config
 
 override_dh_auto_configure: debian/scripts/$(MUSL_ARCH).path debian/scripts/ld-musl-config
-	dh_auto_configure -- --bindir=/usr/bin --libdir=/usr/lib/$(MUSL_ARCH) --includedir=/usr/include/$(MUSL_ARCH) --syslibdir=/lib --host=$(DEB_HOST_GNU_TYPE)
+	dh_auto_configure -- --prefix=/usr --libdir=/usr/lib/$(MUSL_ARCH) --includedir=/usr/include/$(MUSL_ARCH) --host=$(DEB_HOST_GNU_TYPE)
 
 override_dh_fixperms:
 	dh_fixperms --exclude libc.so
