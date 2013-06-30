@@ -47,3 +47,6 @@ debian/scripts/ld-musl-config: debian/scripts/ld-musl-config.in
 override_dh_auto_configure: debian/scripts/$(MUSL_ARCH).path debian/scripts/ld-musl-config
 	dh_auto_configure -- --bindir=/usr/bin --libdir=/usr/lib/$(MUSL_ARCH) --includedir=/usr/include/$(MUSL_ARCH) --syslibdir=/lib --host=$(DEB_HOST_GNU_TYPE)
 
+override_dh_fixperms:
+	dh_fixperms --exclude libc.so
+
