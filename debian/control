@@ -33,6 +33,7 @@ Description: musl standard C library
 
 Package: musl-tools
 Architecture: any
+Depends: ${misc:Depends}, musl (= ${binary:Version})
 Description: musl standard C library
  musl is lightweight, fast, simple, free and strives
  to be correct in the sense of standards-conformance
