@@ -16,12 +16,14 @@ DEB_HOST_ARCH_OS ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
 DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
 
 # Calculating musl based architecture
+MUSL_SUBARCH=$(DEB_HOST_GNU_CPU)
 ifeq ($(DEB_HOST_GNU_CPU),arm)
   ifeq ($(DEB_HOST_ARCH),armel)
      MUSL_ARCH=arm-$(DEB_HOST_ARCH_OS)-musleabi
   endif
   ifeq ($(DEB_HOST_ARCH),armhf)
      MUSL_ARCH=arm-$(DEB_HOST_ARCH_OS)-musleabihf
+     MUSL_SUBARCH=armhf
   endif
 else
   MUSL_ARCH=$(DEB_HOST_GNU_CPU)-$(DEB_HOST_ARCH_OS)-musl
@@ -46,6 +48,7 @@ export LDFLAGS
 
 # Export Variables for dh-exec script
 export MUSL_ARCH
+export MUSL_SUBARCH
 export DEB_HOST_GNU_CPU
 
 # Export Compiler to use
@@ -58,7 +61,7 @@ debian/scripts/$(MUSL_ARCH).path: debian/scripts/config.path.in
 	sed 's/@MUSL_ARCH@/$(MUSL_ARCH)/g' $< > $@
 
 debian/scripts/ld-musl-config: debian/scripts/ld-musl-config.in
-	sed 's/@DEB_HOST_GNU_CPU@/$(DEB_HOST_GNU_CPU)/g' $< > $@
+	sed 's/@MUSL_SUBARCH@/$(MUSL_SUBARCH)/g' $< > $@
 	chmod +x debian/scripts/ld-musl-config
 
 override_dh_auto_configure: debian/scripts/$(MUSL_ARCH).path debian/scripts/ld-musl-config

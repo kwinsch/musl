@@ -1,2 +1,2 @@
 #!/bin/sh
-grep -s -v '^#\|^$' /etc/ld-musl-@DEB_HOST_GNU_CPU@.d/* | sort -u > /etc/ld-musl-@DEB_HOST_GNU_CPU@.path
+grep -s -v '^#\|^$' /etc/ld-musl-@MUSL_SUBARCH@.d/* | sort -u > /etc/ld-musl-@MUSL_SUBARCH@.path
