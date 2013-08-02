@@ -1,0 +1,2 @@
+# musl libc.so does not depend on anything
+musl binary: shared-lib-without-dependency-information

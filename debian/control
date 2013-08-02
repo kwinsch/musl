@@ -12,7 +12,7 @@ Package: musl
 Architecture: any
 Depends: ${misc:Depends}
 Provides: libc
-Description: musl standard C library
+Description: standard C library
  musl is lightweight, fast, simple, free and strives
  to be correct in the sense of standards-conformance
  and safety.
@@ -23,7 +23,7 @@ Package: musl-dev
 Architecture: any
 Depends: ${misc:Depends}, musl (= ${binary:Version})
 Provides: libc-dev
-Description: musl standard C library development files
+Description: standard C library development files
  musl is lightweight, fast, simple, free and strives
  to be correct in the sense of standards-conformance
  and safety.
@@ -34,7 +34,7 @@ Description: musl standard C library development files
 Package: musl-tools
 Architecture: any
 Depends: ${misc:Depends}, musl (= ${binary:Version})
-Description: musl standard C library tools
+Description: standard C library tools
  musl is lightweight, fast, simple, free and strives
  to be correct in the sense of standards-conformance
  and safety.
