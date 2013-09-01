@@ -1,4 +1,10 @@
-musl (0.9.12-2) UNRELEASED; urgency=low
+musl (0.9.13-1) unstable; urgency=low
+
+  * Import upstream version 0.9.13
+
+ -- Kevin Bortis <pkgs@bortis.ch>  Sun, 01 Sep 2013 22:20:46 +0200
+
+musl (0.9.12-2) unstable; urgency=low
 
   * Corrected lintian error "description-starts-with-package-name"
   * Corrected lintian warning "shared-lib-without-dependency-information" 

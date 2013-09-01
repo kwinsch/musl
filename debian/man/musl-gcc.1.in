@@ -1,0 +1,26 @@
+.\" Process this file with
+.\" groff -man -Tascii foo.1
+.\"
+.TH musl-gcc 1 "AUGUST 2013"
+.SH NAME
+musl-gcc \- musl wrapper for gcc
+.SH SYNOPSIS
+.B musl-gcc [OPTION]... [FILENAME]...
+.SH DESCRIPTION
+.B musl-gcc
+acts as a wrapper around
+.BR gcc (1)
+which sets the correct system include paths for
+linking with musl libc library.
+.SH OPTIONS
+Since musl-gcc is a simple wrapper around
+.BR gcc (1)
+, it has the same command line options.
+.SH FILES
+.I /usr/lib/$ARCH-linux-musl/musl-gcc.specs
+.RS
+musl-gcc spec file that defines new/overwritten include paths.
+.SH AUTHOR
+Kevin Bortis <pkgs@bortis.ch>
+.SH SEE ALSO
+.BR gcc (1)
