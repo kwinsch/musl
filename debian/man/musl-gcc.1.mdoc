@@ -1,0 +1,39 @@
+.\"
+.Dd $Mdocdate: August 23 2013 $
+.Dt musl-gcc 1
+.Os Linux
+.\" SECTION
+.Sh NAME
+.Nm musl-gcc
+.Nd musl wrapper for gcc
+.\" SECTION
+.Sh SYNOPSIS
+.Nm musl-gcc
+.Op OPTION...
+.Op FILENAME...
+.\" SECTION
+.Sh DESCRIPTION
+.Nm
+acts as a wrapper arround
+.Xr gcc 1
+which sets the correct system include paths for linking with musl libc library.
+
+Since
+.Nm
+is a simple wrapper arround
+.Xr gcc 1
+it uses the same command line arguments.
+.\" SECTION
+.Sh FILES
+.Pa /usr/lib/$ARCH-linux-musl/musl-gcc.specs
+musl-gcc spec file that defines new/overwritten include paths.
+.\" SECTION
+.Sh SEE ALSO
+.Xr gcc 1
+.\" SECTION
+.Sh AUTHORS
+.An Kevin Bortis Aq pkgs@bortis.ch .
+
+.Nm
+was written by
+.An Rich Felker Aq dalias@aerifal.cx
