@@ -68,8 +68,6 @@ override_dh_auto_configure: debian/scripts/$(MUSL_ARCH).path debian/scripts/ld-m
 	dh_auto_configure -- --prefix=/usr --libdir=/usr/lib/$(MUSL_ARCH) --includedir=/usr/include/$(MUSL_ARCH) --host=$(DEB_HOST_GNU_TYPE)
 
 override_dh_auto_build:
-	# Creating manpages first
-	groff -man -Tutf8 debian/man/musl-gcc.1.in > debian/musl-gcc.1
 	dh_auto_build
 
 override_dh_fixperms:
