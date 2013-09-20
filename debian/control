@@ -2,7 +2,7 @@ Source: musl
 Section: libs
 Priority: extra
 Maintainer: Kevin Bortis <pkgs@bortis.ch>
-Build-Depends: debhelper (>=9), dh-exec (>=0.6), groff-base
+Build-Depends: debhelper (>=9), dh-exec (>=0.6)
 Standards-Version: 3.9.4
 Homepage: http://git.musl-libc.org/
 Vcs-Git: https://github.com/wermut/musl.git
