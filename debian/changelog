@@ -1,3 +1,9 @@
+musl (0.9.13-2) unstable; urgency=low
+
+  * Added preliminary manpages for ld-musl-config and musl-gcc
+
+ -- Kevin Bortis <pkgs@bortis.ch>  Fri, 20 Sep 2013 19:20:33 +0200
+
 musl (0.9.13-1) unstable; urgency=low
 
   * Import upstream version 0.9.13
