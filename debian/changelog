@@ -1,3 +1,12 @@
+musl (0.9.13-3) unstable; urgency=low
+
+  * Ready for Debian upload  (Closes: #721839) 
+  * Respect user set CC
+  * Reworked package according to feedback made
+    by Anton Gladky. See #721839 for reference.
+
+ -- Kevin Bortis <pkgs@bortis.ch>  Fri, 20 Sep 2013 20:54:14 +0200
+
 musl (0.9.13-2) unstable; urgency=low
 
   * Added preliminary manpages for ld-musl-config and musl-gcc
