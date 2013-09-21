@@ -77,7 +77,7 @@ Files: src/math/s_tanl.c
        src/math/sinl.c 
        src/math/round*.c 
        src/math/cosl.c
-Copyright: 2007 Steven G. Kargl
+Copyright: 2003, 2007 Steven G. Kargl
 License: BSD-2-clause
 
 Files: src/math/rintl.c
