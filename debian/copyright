@@ -29,7 +29,8 @@ Files: src/math/tgammal.c
        src/math/logl.c 
        src/math/log2l.c 
        src/math/log1pl.c 
-       src/math/log10l.c 
+       src/math/log10l.c
+       src/math/erfl.c
        src/math/expm1l.c 
        src/math/expl.c 
        src/math/__polevll.c
@@ -92,7 +93,8 @@ Files: src/math/truncl.c
        src/math/expm1.c 
        src/math/expf.c 
        src/math/exp.c 
-       src/math/erf*.c 
+       src/math/erf.c
+       src/math/erff.c
        src/math/cosf.c 
        src/math/cos.c 
        src/math/ceil*.c
