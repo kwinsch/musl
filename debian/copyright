@@ -85,7 +85,8 @@ Files: src/math/truncl.c
        src/math/log10.c 
        src/math/log.c
        src/math/lgammaf_r.c 
-       src/math/lgamma_r.c j*.c 
+       src/math/lgamma_r.c
+       src/math/j*.c 
        src/math/hypot*.c 
        src/math/fmod*.c 
        src/math/floor*.c 
