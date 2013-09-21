@@ -55,6 +55,7 @@ Files: src/math/rintl.c
        src/math/exp2f.c 
        src/math/exp2.c
 Copyright: 2005-2011 David Schultz <das@freebsd.org>
+           1993 Sun Microsystems, Inc.
 License: BSD-2-clause
 
 Files: src/math/truncl.c 
