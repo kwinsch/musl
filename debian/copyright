@@ -5,12 +5,6 @@ Source: http://www.musl-libc.org/releases/
 Files: *
 Copyright: 2005-2013 Rich Felker <dalias@aerifal.cx>
 License: MIT
-
-Files: debian/*
-Copyright: 2013 Kevin Bortis <pkgs@bortis.ch>
-License: MIT
-
-License: MIT
  Permission is hereby granted, free of charge, to any person obtaining a
  copy of this software and associated documentation files (the "Software"),
  to deal in the Software without restriction, including without limitation
@@ -28,3 +22,143 @@ License: MIT
  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Files: src/regex/reg*
+Copyright: 2001-2008 Ville Laurikari <vl@iki.fi>
+           2012 Rich Felker <dalias@aerifal.cx>
+License: BSD-2-clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
+ .
+ 1. Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+ .
+ 2. Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS
+ ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT
+ HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Files: src/math/tgammal.c 
+       src/math/powl.c 
+       src/math/logl.c 
+       src/math/log2l.c 
+       src/math/log1pl.c 
+       src/math/log10l.c 
+       src/math/expm1l.c 
+       src/math/expl.c 
+       src/math/__polevll.c
+Copyright: 2008 Stephen L. Moshier <steve@moshier.net>
+License: ISC
+ Permission to use, copy, modify, and distribute this software for any
+ purpose with or without fee is hereby granted, provided that the above
+ copyright notice and this permission notice appear in all copies.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ 
+Files: src/math/s_tanl.c 
+       src/math/sinl.c 
+       src/math/round*.c 
+       src/math/cosl.c
+Copyright: 2007 Steven G. Kargl
+License: BSD-2-clause
+
+Files: src/math/rintl.c
+       src/math/modfl.c 
+       src/math/fmal.c 
+       src/math/fmaf.c 
+       src/math/exp2l.c 
+       src/math/exp2f.c 
+       src/math/exp2.c
+Copyright: 2005-2011 David Schultz <das@freebsd.org>
+License: BSD-2-clause
+
+Files: src/math/truncl.c 
+       src/math/truncf.c 
+       src/math/trunc.c 
+       src/math/tanf.c 
+       src/math/tan.c 
+       src/math/sqrtf.c 
+       src/math/sqrt.c 
+       src/math/sinf.c 
+       src/math/sincosf.c 
+       src/math/sincos.c 
+       src/math/sin.c 
+       src/math/scalbf.c 
+       src/math/scalb.c 
+       src/math/rintf.c
+       src/math/rint.c 
+       src/math/remq*.c 
+       src/math/remainderf.c 
+       src/math/remainder.c 
+       src/math/powf.c 
+       src/math/pow.c 
+       src/math/logf.c 
+       src/math/log2f.c 
+       src/math/log2.c 
+       src/math/log1pf 
+       src/math/log1p.c 
+       src/math/log10f.c 
+       src/math/log10.c 
+       src/math/log.c
+       src/math/lgammal.c 
+       src/math/lgammaf_r.c 
+       src/math/lgamma_r.c j*.c 
+       src/math/hypot*.c 
+       src/math/fmod*.c 
+       src/math/floor*.c 
+       src/math/expm1f.c 
+       src/math/expm1.c 
+       src/math/expf.c 
+       src/math/exp.c 
+       src/math/erf*.c 
+       src/math/cosf.c 
+       src/math/cos.c 
+       src/math/ceil*.c
+       src/math/cbrt*.c 
+       src/math/atanl.c 
+       src/math/atanf.c 
+       src/math/atan2*.c 
+       src/math/atan.c 
+       src/math/asinl.c 
+       src/math/asinf.c 
+       src/math/asin.c 
+       src/math/acosl.c 
+       src/math/acosf.c 
+       src/math/acos.c 
+       src/math/__tan*.c 
+       src/math/__sin*.c 
+       src/math/__rem*.c 
+       src/math/__log1*.h 
+       src/math/__cos*.c
+Copyright: 1993, 2004 Sun Microsystems
+           2008, 2009-2011 Bruce D. Evans
+           2008, 2009-2011 Steven G. Kargl
+           2008, 2009-2011 David Schultz
+License: permissive
+ Developed at SunPro, a Sun Microsystems, Inc. business.
+ Permission to use, copy, modify, and distribute this
+ software is freely granted, provided that this notice
+ is preserved.
+ 
+
+Files: debian/*
+Copyright: 2013 Kevin Bortis <pkgs@bortis.ch>
+License: MIT
