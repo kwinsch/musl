@@ -36,6 +36,7 @@ Copyright: 2008 Stephen L. Moshier <steve@moshier.net>
 License: ISC
  
 Files: src/math/s_tanl.c 
+       src/math/tanl.c
        src/math/sinl.c 
        src/math/round*.c 
        src/math/cosl.c
