@@ -49,7 +49,8 @@ License: BSD-2-clause
 Files: src/math/rintl.c
        src/math/modfl.c 
        src/math/fmal.c 
-       src/math/fmaf.c 
+       src/math/fmaf.c
+       src/math/fma.c
        src/math/exp2l.c 
        src/math/exp2f.c 
        src/math/exp2.c
