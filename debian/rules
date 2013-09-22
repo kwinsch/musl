@@ -18,7 +18,11 @@ ifeq ($(DEB_HOST_GNU_CPU),arm)
      MUSL_SUBARCH=armhf
   endif
 else
-  MUSL_ARCH=$(DEB_HOST_GNU_CPU)-$(DEB_HOST_ARCH_OS)-musl
+  case "$(DEB_HOST_GNU_CPU)" in
+    i?86*) MUSL_CPU=i386 ;;
+    *) MUSL_CPU=$(DEB_HOST_GNU_CPU) ;;
+  esac
+  MUSL_ARCH=$(MUSL_CPU)-$(DEB_HOST_ARCH_OS)-musl
 endif
 
 # Cross build support
