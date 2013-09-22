@@ -16,6 +16,7 @@ ifeq ($(DEB_HOST_GNU_CPU),arm)
   ifeq ($(DEB_HOST_ARCH),armhf)
      MUSL_ARCH=arm-linux-musleabihf
      MUSL_SUBARCH=armhf
+     DEB_HOST_GNU_CPU=armhf
   endif
 else
   ifeq ($(DEB_HOST_ARCH),i386)
