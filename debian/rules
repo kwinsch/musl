@@ -11,18 +11,18 @@ DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
 MUSL_SUBARCH=$(DEB_HOST_GNU_CPU)
 ifeq ($(DEB_HOST_GNU_CPU),arm)
   ifeq ($(DEB_HOST_ARCH),armel)
-     MUSL_ARCH=arm-linux-musleabi
+     MUSL_ARCH=arm-$(DEB_HOST_ARCH_OS)-musleabi
   endif
   ifeq ($(DEB_HOST_ARCH),armhf)
-     MUSL_ARCH=arm-linux-musleabihf
+     MUSL_ARCH=arm-$(DEB_HOST_ARCH_OS)-musleabihf
      MUSL_SUBARCH=armhf
   endif
 else
-  case "$(DEB_HOST_GNU_CPU)" in \
-    i?86*) MUSL_CPU=i386 ;; \
-    *) MUSL_CPU=$(DEB_HOST_GNU_CPU) ;; \
-  esac
-  MUSL_ARCH=$(MUSL_CPU)-linux-musl
+  ifeq ($(DEB_HOST_ARCH),i386)
+    MUSL_ARCH=i386-linux-musl
+  else
+    MUSL_ARCH=$(DEB_HOST_GNU_CPU)-linux-musl
+  endif
 endif
 
 # Cross build support
