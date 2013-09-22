@@ -9,7 +9,7 @@ Vcs-Git: https://github.com/wermut/musl.git
 Vcs-Browser: https://github.com/wermut/musl/
 
 Package: musl
-Architecture: any
+Architecture: armel armhf i386 amd64 mips mipsel
 Depends: ${misc:Depends}
 Provides: libc
 Description: standard C library
@@ -20,7 +20,7 @@ Description: standard C library
  This package contains the shared objects
 
 Package: musl-dev
-Architecture: any
+Architecture: armel armhf i386 amd64 mips mipsel
 Depends: ${misc:Depends}, musl (= ${binary:Version})
 Provides: libc-dev
 Description: standard C library development files
@@ -32,7 +32,7 @@ Description: standard C library development files
  and the include files.
 
 Package: musl-tools
-Architecture: any
+Architecture: armel armhf i386 amd64 mips mipsel
 Depends: ${misc:Depends}, musl (= ${binary:Version})
 Description: standard C library tools
  musl is lightweight, fast, simple, free and strives
