@@ -1,3 +1,10 @@
+musl (0.9.14-0) unstable; urgency=low
+
+  * Import upstream version 0.9.14
+  * Only build on fully supported architectures
+
+ -- Kevin Bortis <pkgs@bortis.ch>  Sun, 22 Sep 2013 15:38:30 +0200
+
 musl (0.9.13-3) unstable; urgency=low
 
   * Ready for Debian upload  (Closes: #713072) 
