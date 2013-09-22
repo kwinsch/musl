@@ -21,6 +21,7 @@ ifeq ($(DEB_HOST_GNU_CPU),arm)
 else
   ifeq ($(DEB_HOST_ARCH),i386)
     MUSL_ARCH=i386-linux-musl
+    MUSL_SUBARCH=i386
   else
     MUSL_ARCH=$(DEB_HOST_GNU_CPU)-linux-musl
   endif
