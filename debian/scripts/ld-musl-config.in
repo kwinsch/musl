@@ -1,2 +1,2 @@
 #!/bin/sh
-grep -s -v '^#\|^$' /etc/ld-musl-@MUSL_SUBARCH@.d/* | sort -u > /etc/ld-musl-@MUSL_SUBARCH@.path
+grep -s -v '^#\|^$' /etc/ld-musl-@MUSL_ARCH@.d/* | sort -u > /etc/ld-musl-@MUSL_ARCH@.path
