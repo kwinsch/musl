@@ -4,28 +4,28 @@ export DH_OPTIONS
 DEB_HOST_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_BUILD_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 DEB_HOST_GNU_CPU ?= $(shell dpkg-architecture -qDEB_HOST_GNU_CPU)
-DEB_HOST_ARCH_OS ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
 DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
 
 # Calculating musl based architecture
-MUSL_SUBARCH=$(DEB_HOST_GNU_CPU)
-ifeq ($(DEB_HOST_GNU_CPU),arm)
-  ifeq ($(DEB_HOST_ARCH),armel)
-     MUSL_ARCH=arm-linux-musleabi
-  endif
-  ifeq ($(DEB_HOST_ARCH),armhf)
-     MUSL_ARCH=arm-linux-musleabihf
-     MUSL_SUBARCH=armhf
-     DEB_HOST_GNU_CPU=armhf
-  endif
-else
-  ifeq ($(DEB_HOST_ARCH),i386)
-    MUSL_ARCH=i386-linux-musl
-    MUSL_SUBARCH=i386
-  else
-    MUSL_ARCH=$(DEB_HOST_GNU_CPU)-linux-musl
-  endif
+MUSL_ARCH=$(DEB_HOST_GNU_CPU)
+MUSL_TRIPLE=$(DEB_HOST_GNU_CPU)-linux-musl
+
+ifeq ($(DEB_HOST_ARCH),armel)
+  MUSL_ARCH=arm
+  MUSL_TRIPLE=arm-linux-musleabi
 endif
+
+ifeq ($(DEB_HOST_ARCH),armhf)
+  MUSL_ARCH=armhf
+  MUSL_TRIPLE=arm-linux-musleabihf
+endif
+
+ifeq ($(DEB_HOST_ARCH),i386)
+  MUSL_ARCH=i386
+  MUSL_TRIPLE=i386-linux-musl
+endif
+export MUSL_ARCH
+export MUSL_TRIPLE
 
 # Cross build support
 ifeq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))  
@@ -45,23 +45,18 @@ export CFLAGS
 export CPPFLAGS
 export LDFLAGS
 
-# Export Variables for dh-exec script
-export MUSL_ARCH
-export MUSL_SUBARCH
-export DEB_HOST_GNU_CPU
-
 %:
 	dh $@ --parallel
 
-debian/scripts/$(MUSL_ARCH).path: debian/scripts/config.path.in
-	sed 's/@MUSL_ARCH@/$(MUSL_ARCH)/g' $< > $@
+debian/scripts/$(MUSL_TRIPLE).path: debian/scripts/config.path.in
+	sed 's/@MUSL_TRIPLE@/$(MUSL_TRIPLE)/g' $< > $@
 
 debian/scripts/ld-musl-config: debian/scripts/ld-musl-config.in
-	sed 's/@MUSL_SUBARCH@/$(MUSL_SUBARCH)/g' $< > $@
+	sed 's/@MUSL_ARCH@/$(MUSL_ARCH)/g' $< > $@
 	chmod +x debian/scripts/ld-musl-config
 
-override_dh_auto_configure: debian/scripts/$(MUSL_ARCH).path debian/scripts/ld-musl-config
-	dh_auto_configure -- --libdir=/usr/lib/$(MUSL_ARCH) --includedir=/usr/include/$(MUSL_ARCH) --host=$(DEB_HOST_GNU_TYPE)
+override_dh_auto_configure: debian/scripts/$(MUSL_TRIPLE).path debian/scripts/ld-musl-config
+	dh_auto_configure -- --libdir=/usr/lib/$(MUSL_TRIPLE) --includedir=/usr/include/$(MUSL_TRIPLE) --host=$(DEB_HOST_GNU_TYPE)
 
 override_dh_fixperms:
 	dh_fixperms --exclude libc.so
