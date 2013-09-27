@@ -4,6 +4,7 @@ musl (0.9.14-1) unstable; urgency=low
   * Only build on fully supported architectures
   * Point to new homepage in control file (Closes: #724277)
   * Revorked debian/rules
+  * Solved possible problem with postrm script (Closes: #724247)
 
  -- Kevin Bortis <pkgs@bortis.ch>  Fri, 27 Sep 2013 23:47:18 +0200
 
