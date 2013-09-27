@@ -2,3 +2,4 @@
 usr/lib/${MUSL_TRIPLE}/libc.so lib/${MUSL_TRIPLE}
 ../scripts/ld-musl-config usr/bin
 ../scripts/${MUSL_TRIPLE}.path etc/ld-musl-${MUSL_ARCH}.d
+../scripts/ld-musl-${MUSL_ARCH}.path etc

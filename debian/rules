@@ -47,6 +47,7 @@ unset LDFLAGS
 
 debian/scripts/$(MUSL_TRIPLE).path: debian/scripts/config.path.in
 	sed 's/@MUSL_TRIPLE@/$(MUSL_TRIPLE)/g' $< > $@
+        cp debian/scripts/$(MUSL_TRIPLE).path debian/scripts/ld-musl-$(MUSL_ARCH).path
 
 debian/scripts/ld-musl-config: debian/scripts/ld-musl-config.in
 	sed 's/@MUSL_ARCH@/$(MUSL_ARCH)/g' $< > $@
