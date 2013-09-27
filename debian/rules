@@ -38,12 +38,9 @@ endif
 export CC
 
 # Clear variables to make musl happy
-CFLAGS=
-CPPFLAGS=
-LDFLAGS=
-export CFLAGS
-export CPPFLAGS
-export LDFLAGS
+unset CFLAGS
+unset CPPFLAGS
+unset LDFLAGS
 
 %:
 	dh $@ --parallel
