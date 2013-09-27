@@ -38,17 +38,11 @@ Copyright: 2008 Stephen L. Moshier <steve@moshier.net>
            1993 Sun Microsystems, Inc.
 License: ISC
  
-Files: src/math/s_tanl.c 
-       src/math/tanl.c
-       src/math/sinl.c 
-       src/math/round*.c 
-       src/math/cosl.c
+Files: src/math/__tanl.c 
 Copyright: 2003, 2007 Steven G. Kargl
 License: BSD-2-clause
 
-Files: src/math/rintl.c
-       src/math/modfl.c 
-       src/math/fmal.c 
+Files: src/math/fmal.c 
        src/math/fmaf.c
        src/math/fma.c
        src/math/exp2l.c 
@@ -58,10 +52,7 @@ Copyright: 2005-2011 David Schultz <das@freebsd.org>
            1993 Sun Microsystems, Inc.
 License: BSD-2-clause
 
-Files: src/math/truncl.c 
-       src/math/truncf.c 
-       src/math/trunc.c 
-       src/math/tanf.c 
+Files: src/math/tanf.c 
        src/math/tan.c 
        src/math/sqrtf.c 
        src/math/sqrt.c 
@@ -71,11 +62,6 @@ Files: src/math/truncl.c
        src/math/sin.c 
        src/math/scalbf.c 
        src/math/scalb.c 
-       src/math/rintf.c
-       src/math/rint.c 
-       src/math/remq*.c 
-       src/math/remainderf.c 
-       src/math/remainder.c 
        src/math/powf.c 
        src/math/pow.c 
        src/math/logf.c 
@@ -89,9 +75,6 @@ Files: src/math/truncl.c
        src/math/lgammaf_r.c 
        src/math/lgamma_r.c
        src/math/j*.c 
-       src/math/hypot*.c 
-       src/math/fmod*.c 
-       src/math/floor*.c 
        src/math/expm1f.c 
        src/math/expm1.c 
        src/math/expf.c 
@@ -100,7 +83,6 @@ Files: src/math/truncl.c
        src/math/erff.c
        src/math/cosf.c 
        src/math/cos.c 
-       src/math/ceil*.c
        src/math/cbrt*.c 
        src/math/atanl.c 
        src/math/atanf.c 
