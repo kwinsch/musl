@@ -1,2 +1,2 @@
-/lib/@MUSL_ARCH@
-/usr/lib/@MUSL_ARCH@
+/lib/@MUSL_TRIPLE@
+/usr/lib/@MUSL_TRIPLE@
