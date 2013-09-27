@@ -1,2 +1,2 @@
 #! /usr/bin/dh-exec
-/lib/${MUSL_ARCH}/libc.so /lib/ld-musl-${DEB_HOST_GNU_CPU}.so.1
+/lib/${MUSL_TRIPLE}/libc.so /lib/ld-musl-${MUSL_ARCH}.so.1

@@ -1,4 +1,4 @@
 #! /usr/bin/dh-exec
-usr/lib/${MUSL_ARCH}/libc.so lib/${MUSL_ARCH}
+usr/lib/${MUSL_TRIPLE}/libc.so lib/${MUSL_TRIPLE}
 ../scripts/ld-musl-config usr/bin
-../scripts/${MUSL_ARCH}.path etc/ld-musl-${MUSL_SUBARCH}.d
+../scripts/${MUSL_TRIPLE}.path etc/ld-musl-${MUSL_ARCH}.d

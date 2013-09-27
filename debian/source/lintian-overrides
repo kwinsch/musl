@@ -1,2 +1,2 @@
-# MUSL_ARCH is used to define install directory
+# MUSL_ARCH and MUSL_TRIPLE are used to define install directory
 musl source: dh-exec-subst-unknown-variable
