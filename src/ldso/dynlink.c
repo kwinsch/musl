@@ -614,6 +614,8 @@ static struct dso *load_library(const char *name, struct dso *needed_by)
 						sys_path = "";
 					}
 					fclose(f);
+				} else if (errno != ENOENT) {
+					sys_path = "";
 				}
 			}
 			if (!sys_path) sys_path = "/lib:/usr/local/lib:/usr/lib";
@@ -978,6 +980,7 @@ void *__dynlink(int argc, char **argv)
 		env_preload = 0;
 		libc.secure = 1;
 	}
+	libc.page_size = aux[AT_PAGESZ];
 
 	/* If the dynamic linker was invoked as a program itself, AT_BASE
 	 * will not be set. In that case, we assume the base address is
