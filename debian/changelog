@@ -1,9 +1,11 @@
-musl (0.9.14-0) unstable; urgency=low
+musl (0.9.14-1) unstable; urgency=low
 
   * Import upstream version 0.9.14
   * Only build on fully supported architectures
+  * Point to new homepage in control file (Closes: #724277)
+  * Revorked debian/rules
 
- -- Kevin Bortis <pkgs@bortis.ch>  Sun, 22 Sep 2013 15:38:30 +0200
+ -- Kevin Bortis <pkgs@bortis.ch>  Fri, 27 Sep 2013 23:47:18 +0200
 
 musl (0.9.13-3) unstable; urgency=low
 
