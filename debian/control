@@ -12,7 +12,6 @@ Package: musl
 Section: libs
 Architecture: armel armhf i386 amd64 mips mipsel
 Depends: ${misc:Depends}
-Provides: libc
 Description: standard C library
  musl is lightweight, fast, simple, free and strives
  to be correct in the sense of standards-conformance
