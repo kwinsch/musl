@@ -23,7 +23,6 @@ Package: musl-dev
 Section: libdevel
 Architecture: armel armhf i386 amd64 mips mipsel
 Depends: ${misc:Depends}, musl (= ${binary:Version})
-Provides: libc-dev
 Description: standard C library development files
  musl is lightweight, fast, simple, free and strives
  to be correct in the sense of standards-conformance
