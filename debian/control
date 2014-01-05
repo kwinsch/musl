@@ -11,6 +11,7 @@ Vcs-Browser: https://github.com/wermut/musl/
 Package: musl
 Section: libs
 Architecture: armel armhf i386 amd64 mips mipsel
+Multi-Arch: same
 Depends: ${misc:Depends}
 Description: standard C library
  musl is lightweight, fast, simple, free and strives

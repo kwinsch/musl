@@ -67,7 +67,7 @@ Files: src/math/tanf.c
        src/math/logf.c 
        src/math/log2f.c 
        src/math/log2.c 
-       src/math/log1pf 
+       src/math/log1pf.c 
        src/math/log1p.c 
        src/math/log10f.c 
        src/math/log10.c 
@@ -97,7 +97,6 @@ Files: src/math/tanf.c
        src/math/__tan*.c 
        src/math/__sin*.c 
        src/math/__rem*.c 
-       src/math/__log1*.h 
        src/math/__cos*.c
 Copyright: 1993, 2004 Sun Microsystems, Inc.
            2008, 2009-2011 Bruce D. Evans

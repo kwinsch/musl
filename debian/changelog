@@ -1,3 +1,11 @@
+musl (0.9.15-1) unstable; urgency=low
+
+  * Import upstream version 0.9.15
+  * Do no longer provide libc-dev (Closes: #725376)
+  * Make runtime package multi-arch (Closes: #732170)
+
+ -- Kevin Bortis <pkgs@bortis.ch>  Sun, 05 Jan 2014 20:11:11 +0100
+
 musl (0.9.14-2) unstable; urgency=low
 
   * Make musl-tools depend on musl-dev (Closes: #725060)
