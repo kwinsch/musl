@@ -19,12 +19,14 @@ extern "C" {
 
 #include <bits/socket.h>
 
+#ifdef _GNU_SOURCE
 struct ucred
 {
 	pid_t pid;
 	uid_t uid;
 	gid_t gid;
 };
+#endif
 
 struct linger
 {
@@ -33,7 +35,7 @@ struct linger
 };
 
 #define SHUT_RD 0
-#define SHUT_WD 1
+#define SHUT_WR 1
 #define SHUT_RDWR 2
 
 #ifndef SOCK_STREAM
@@ -225,7 +227,7 @@ struct linger
 #define MSG_EOR       0x0080
 #define MSG_WAITALL   0x0100
 #define MSG_FIN       0x0200
-#define MSD_SYN       0x0400
+#define MSG_SYN       0x0400
 #define MSG_CONFIRM   0x0800
 #define MSG_RST       0x1000
 #define MSG_ERRQUEUE  0x2000
@@ -289,10 +291,6 @@ int getsockopt (int, int, int, void *__restrict, socklen_t *__restrict);
 int setsockopt (int, int, int, const void *, socklen_t);
 
 int sockatmark (int);
-
-#define SHUT_RD 0
-#define SHUT_WR 1
-#define SHUT_RDWR 2
 
 #ifdef __cplusplus
 }

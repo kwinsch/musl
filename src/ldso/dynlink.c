@@ -7,12 +7,9 @@
 #include <elf.h>
 #include <sys/mman.h>
 #include <limits.h>
-#include <stdint.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <errno.h>
-#include <limits.h>
-#include <elf.h>
 #include <link.h>
 #include <setjmp.h>
 #include <pthread.h>
@@ -95,6 +92,8 @@ struct symdef {
 void __init_ssp(size_t *);
 void *__install_initial_tls(void *);
 void __init_libc(char **, char *);
+
+const char *__libc_get_version(void);
 
 static struct dso *head, *tail, *ldso, *fini_head;
 static char *env_path, *sys_path;
@@ -1043,8 +1042,11 @@ void *__dynlink(int argc, char **argv)
 		*argv++ = (void *)-1;
 		if (argv[0] && !strcmp(argv[0], "--")) *argv++ = (void *)-1;
 		if (!argv[0]) {
-			dprintf(2, "musl libc/dynamic program loader\n");
-			dprintf(2, "usage: %s pathname%s\n", ldname,
+			dprintf(2, "musl libc\n"
+				"Version %s\n"
+				"Dynamic Program Loader\n"
+				"Usage: %s [--] pathname%s\n",
+				__libc_get_version(), ldname,
 				ldd_mode ? "" : " [args]");
 			_exit(1);
 		}
@@ -1354,7 +1356,7 @@ int __dladdr(void *addr, Dl_info *info)
 		uint32_t *hashval;
 		buckets = p->ghashtab + 4 + (p->ghashtab[2]*sizeof(size_t)/4);
 		sym += p->ghashtab[1];
-		for (i = 0; i < p->ghashtab[0]; i++) {
+		for (i = nsym = 0; i < p->ghashtab[0]; i++) {
 			if (buckets[i] > nsym)
 				nsym = buckets[i];
 		}
