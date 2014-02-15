@@ -3,7 +3,7 @@ Section: libs
 Priority: extra
 Maintainer: Kevin Bortis <pkgs@bortis.ch>
 Build-Depends: debhelper (>=9), dh-exec (>=0.6)
-Standards-Version: 3.9.4
+Standards-Version: 3.9.5
 Homepage: http://www.musl-libc.org/
 Vcs-Git: https://github.com/wermut/musl.git
 Vcs-Browser: https://github.com/wermut/musl/
