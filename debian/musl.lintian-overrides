@@ -1,2 +1,4 @@
 # musl libc.so does not depend on anything
 musl binary: shared-lib-without-dependency-information
+# musl need to use his own namespace to not conflict with other libc's
+musl binary: arch-dependent-file-not-in-arch-specific-directory
