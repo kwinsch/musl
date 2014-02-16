@@ -1,1 +1,2 @@
 debian/man/ld-musl-config.8
+debian/man/musl-ldd.1

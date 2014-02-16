@@ -1,2 +1,3 @@
 #! /usr/bin/dh-exec
 /lib/${MUSL_TRIPLE}/libc.so /lib/ld-musl-${MUSL_ARCH}.so.1
+/lib/${MUSL_TRIPLE}/libc.so /usr/bin/musl-ldd

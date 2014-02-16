@@ -1,3 +1,10 @@
+musl (1.0.0-1) unstable; urgency=medium
+
+  * Import upstream version 1.0.0
+  * Provide musl-ldd (Closes: #732169)
+
+ -- Kevin Bortis <pkgs@bortis.ch>  Sun, 16 Feb 2014 09:39:56 +0100
+
 musl (0.9.15-1) unstable; urgency=low
 
   * Import upstream version 0.9.15
@@ -27,7 +34,7 @@ musl (0.9.13-3) unstable; urgency=low
 
   * Ready for Debian upload  (Closes: #713072) 
   * Respect user set CC
-  * Reworked package according to feedback gven
+  * Reworked package according to feedback given
     by Anton Gladky. See #721839 for reference.
   * Reworked debian/copyright file according to
     feedback given by Paul Richards Tagliamonte

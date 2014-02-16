@@ -1,30 +1,34 @@
 .TH "musl-gcc" "1" "August 23, 2013" "Linux" "General Commands Manual"
+.nh
+.if n .ad l
 .SH "NAME"
-\fBmusl-gcc\fP
+\fBmusl-gcc\fR
 \- musl wrapper for gcc
 .SH "SYNOPSIS"
-\fBmusl-gcc\fP
+.HP 9n
+\fBmusl-gcc\fR
 [OPTION...]
-[FILENAME...]
+\fIFILENAME...\fR
 .SH "DESCRIPTION"
-\fBmusl-gcc\fP
+\fBmusl-gcc\fR
 acts as a wrapper arround
 gcc(1)
 which sets the correct system include paths for linking with musl libc library.
 .sp
 Since
-\fBmusl-gcc\fP
+\fBmusl-gcc\fR
 is a simple wrapper arround
 gcc(1)
 it uses the same command line arguments.
 .SH "FILES"
-\fI/usr/lib/$ARCH-linux-musl/musl-gcc.specs\fP
+\fI/usr/lib/$ARCH-linux-musl/musl-gcc.specs\fR
 musl-gcc spec file that defines new/overwritten include paths.
 .SH "SEE ALSO"
 gcc(1)
 .SH "AUTHORS"
 Kevin Bortis <pkgs@bortis.ch>.
 .sp
-\fBmusl-gcc\fP
+\fBmusl-gcc\fR
 was written by
+.br
 Rich Felker <dalias@aerifal.cx>
