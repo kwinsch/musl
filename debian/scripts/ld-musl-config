@@ -10,6 +10,6 @@ for DIR in $(find /etc -maxdepth 1 -type d -name "ld-musl-*.d")
     esac
     if [ $VALID_ARCH==1 ]
     then
-      grep -s -v '^#\|^$' /etc/ld-musl-$ARCH.d/* | sort -u > ./ld-musl-$ARCH.path
+      grep -s -v '^#\|^$' /etc/ld-musl-$ARCH.d/* | sort -u > /etc/ld-musl-$ARCH.path
     fi
 done
