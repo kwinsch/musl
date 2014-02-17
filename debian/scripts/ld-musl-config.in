@@ -1,2 +1,15 @@
 #!/bin/sh
-grep -s -v '^#\|^$' /etc/ld-musl-@MUSL_ARCH@.d/* | sort -u > /etc/ld-musl-@MUSL_ARCH@.path
+for DIR in $(find /etc -maxdepth 1 -type d -name "ld-musl-*.d")
+  do
+    ARCH=$(echo $DIR | sed 's@/etc/ld-musl-@@g' | sed 's@.d@@g')
+    VALID_ARCH=0
+    case ${ARCH} in
+      arm|armhf|amd64|i386|mips|mipsel)
+        VALID_ARCH=1
+        ;;
+    esac
+    if [ $VALID_ARCH==1 ]
+    then
+      grep -s -v '^#\|^$' /etc/ld-musl-$ARCH.d/* | sort -u > ./ld-musl-$ARCH.path
+    fi
+done
