@@ -4,7 +4,7 @@ musl (1.0.0-1) unstable; urgency=medium
   * Provide musl-ldd (Closes: #732169)
   * Arch independent ld-musl-config (Closes: #739205)
 
- -- Kevin Bortis <pkgs@bortis.ch>  Sun, 16 Feb 2014 09:39:56 +0100
+ -- Kevin Bortis <pkgs@bortis.ch>  Sat, 22 Mar 2014 09:39:56 +0100
 
 musl (0.9.15-1) unstable; urgency=low
 
