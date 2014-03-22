@@ -148,6 +148,7 @@ struct f_owner_ex {
 #define SPLICE_F_MORE 4
 #define SPLICE_F_GIFT 8
 int fallocate(int, int, off_t, off_t);
+#define fallocate64 fallocate
 ssize_t readahead(int, off_t, size_t);
 int sync_file_range(int, off_t, off_t, unsigned);
 ssize_t vmsplice(int, const struct iovec *, size_t, unsigned);
@@ -160,6 +161,7 @@ ssize_t tee(int, int, size_t, unsigned);
 #define F_GETLK64 F_GETLK
 #define F_SETLK64 F_SETLK
 #define F_SETLKW64 F_SETLKW
+#define flock64 flock
 #define open64 open
 #define openat64 openat
 #define creat64 creat
