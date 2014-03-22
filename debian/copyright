@@ -3,14 +3,14 @@ Upstream-Name: musl
 Source: http://www.musl-libc.org/releases/
 
 Files: *
-Copyright: 2005-2013 Rich Felker <dalias@aerifal.cx>
-           2005-2013 Many other contributors 
+Copyright: 2005-2014 Rich Felker <dalias@aerifal.cx>
+           2005-2014 Many other contributors 
 License: MIT
 
 Files: include/*
        arch/*/bits/*
        crt/*
-Copyright: 2005-2013 Rich Felker <dalias@aerifal.cx>
+Copyright: 2005-2014 Rich Felker <dalias@aerifal.cx>
 License: public-domain
  The following files are trivial, in my opinion not copyrightable in
  the first place, and hereby explicitly released to the Public Domain:
@@ -142,18 +142,19 @@ Files: src/stdlib/qsort.c
 Copyright: 2011 Valentin Ochs
 License: MIT
 
-Files: src/prng/random.c
-Copyright: 2011 Szabolcs Nagy
-License: permissive
- Permission to use, copy, modify, and/or distribute this code
- for any purpose with or without fee is hereby granted.
- There is no warranty.
-
 Files: crt/x86_64/Scrt1.s
        crt/x86_64/crt1.s
 Copyright: 2011 Nicholas J. Kain
 License: public-domain
  released as Public Domain
+
+Files: src/setjmp/x32/longjmp.s
+       src/setjmp/x32/setjmp.s
+       src/setjmp/x32/sigsetjmp.s
+       src/thread/x32/__set_thread_area.s
+       src/thread/x32/__unmapself.s
+Copyright: 2011-2012 Nicholas J. Kain
+License: MIT
  
 Files: src/string/armel/memcpy.s
 Copyright: 2008 The Android Open Source Project
