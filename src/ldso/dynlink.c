@@ -253,7 +253,8 @@ static void do_relocs(struct dso *dso, size_t *rel, size_t rel_size, size_t stri
 			name = strings + sym->st_name;
 			ctx = IS_COPY(type) ? head->next : head;
 			def = find_sym(ctx, name, IS_PLT(type));
-			if (!def.sym && sym->st_info>>4 != STB_WEAK) {
+			if (!def.sym && (sym->st_shndx != SHN_UNDEF
+			    || sym->st_info>>4 != STB_WEAK)) {
 				snprintf(errbuf, sizeof errbuf,
 					"Error relocating %s: %s: symbol not found",
 					dso->name, name);
@@ -1331,7 +1332,7 @@ failed:
 	return 0;
 }
 
-int __dladdr(void *addr, Dl_info *info)
+int __dladdr(const void *addr, Dl_info *info)
 {
 	struct dso *p;
 	Sym *sym;
@@ -1441,7 +1442,7 @@ void *__dlsym(void *restrict p, const char *restrict s, void *restrict ra)
 {
 	return 0;
 }
-int __dladdr (void *addr, Dl_info *info)
+int __dladdr (const void *addr, Dl_info *info)
 {
 	return 0;
 }

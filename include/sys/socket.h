@@ -202,10 +202,15 @@ struct linger
 #define SO_LOCK_FILTER          44
 #define SO_SELECT_ERR_QUEUE     45
 #define SO_BUSY_POLL            46
+#define SO_MAX_PACING_RATE      47
 
 #ifndef SOL_SOCKET
 #define SOL_SOCKET      1
 #endif
+
+#define SOL_IP          0
+#define SOL_IPV6        41
+#define SOL_ICMPV6      58
 
 #define SOL_RAW         255
 #define SOL_DECNET      261

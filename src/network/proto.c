@@ -4,7 +4,7 @@
 /* do we really need all these?? */
 
 static int idx;
-static const unsigned char protos[][6] = {
+static const unsigned char protos[][8] = {
 	"\000ip",
 	"\001icmp",
 	"\002igmp",
@@ -13,7 +13,9 @@ static const unsigned char protos[][6] = {
 	"\014pup",
 	"\021udp",
 	"\026idp",
-	"\377raw"
+	"\051ipv6",
+	"\072icmpv6",
+	"\377raw",
 	"\0\0"
 };
 

@@ -222,12 +222,16 @@ printf "%s\n" "$target"
 # Convert to just ARCH
 #
 case "$target" in
+# Catch these early to simplify matching for 32-bit archs
+mips64*|powerpc64*) fail "$0: unsupported target \"$target\"" ;;
 arm*) ARCH=arm ;;
 i?86*) ARCH=i386 ;;
+x86_64-x32*|x32*|x86_64*x32) ARCH=x32 ;;
 x86_64*) ARCH=x86_64 ;;
-mips-*|mipsel-*) ARCH=mips ;;
-microblaze-*) ARCH=microblaze ;;
-powerpc-*) ARCH=powerpc ;;
+mips*) ARCH=mips ;;
+microblaze*) ARCH=microblaze ;;
+powerpc*) ARCH=powerpc ;;
+sh[1-9bel-]*|sh|superh*) ARCH=sh ;;
 unknown) fail "$0: unable to detect target arch; try $0 --target=..." ;;
 *) fail "$0: unknown or unsupported target \"$target\"" ;;
 esac
@@ -381,6 +385,7 @@ tryflag CFLAGS_AUTO -Wno-missing-braces
 tryflag CFLAGS_AUTO -Wno-unused-value
 tryflag CFLAGS_AUTO -Wno-unused-but-set-variable
 tryflag CFLAGS_AUTO -Wno-unknown-pragmas
+tryflag CFLAGS_AUTO -Wno-pointer-to-int-cast
 fi
 
 # Some patched GCC builds have these defaults messed up...
@@ -405,16 +410,41 @@ printf "using compiler runtime libraries: %s\n" "$LIBCC"
 SUBARCH=
 t="$CFLAGS_C99FSE $CPPFLAGS $CFLAGS_AUTO $CFLAGS"
 
+if test "$ARCH" = "x86_64" ; then
+trycppif __ILP32__ "$t" && ARCH=x32
+fi
+
 if test "$ARCH" = "arm" ; then
 trycppif __ARMEB__ "$t" && SUBARCH=${SUBARCH}eb
 trycppif __ARM_PCS_VFP "$t" && SUBARCH=${SUBARCH}hf
 fi
 
-test "$ARCH" = "mips" && trycppif "_MIPSEL || __MIPSEL || __MIPSEL__" "$t" \
-&& SUBARCH=${SUBARCH}el
+if test "$ARCH" = "mips" ; then
+trycppif "_MIPSEL || __MIPSEL || __MIPSEL__" "$t" && SUBARCH=${SUBARCH}el
+trycppif __mips_soft_float "$t" && SUBARCH=${SUBARCH}-sf
+fi
 
 test "$ARCH" = "microblaze" && trycppif __MICROBLAZEEL__ "$t" \
 && SUBARCH=${SUBARCH}el
+
+if test "$ARCH" = "sh" ; then
+trycppif __BIG_ENDIAN__ "$t" && SUBARCH=${SUBARCH}eb
+if trycppif __SH_FPU_ANY__ "$t" ; then
+# Some sh configurations are broken and replace double with float
+# rather than using softfloat when the fpu is present but only
+# supports single precision. Reject them.
+printf "checking whether compiler's double type is IEEE double... "
+echo 'typedef char dblcheck[(int)sizeof(double)-5];' > "$tmpc"
+if $CC $CFLAGS_C99FSE $CPPFLAGS $CFLAGS -c -o /dev/null "$tmpc" >/dev/null 2>&1 ; then
+printf "yes\n"
+else
+printf "no\n"
+fail "$0: error: compiler's floating point configuration is unsupported"
+fi
+else
+SUBARCH=${SUBARCH}-nofpu
+fi
+fi
 
 test "$SUBARCH" \
 && printf "configured for %s variant: %s\n" "$ARCH" "$ARCH$SUBARCH"

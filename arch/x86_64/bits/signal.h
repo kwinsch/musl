@@ -60,6 +60,12 @@ typedef struct {
 } mcontext_t;
 #endif
 
+struct sigaltstack {
+	void *ss_sp;
+	int ss_flags;
+	size_t ss_size;
+};
+
 typedef struct __ucontext {
 	unsigned long uc_flags;
 	struct __ucontext *uc_link;
