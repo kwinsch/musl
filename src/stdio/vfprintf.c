@@ -308,8 +308,8 @@ static int fmt_fp(FILE *f, long double y, int w, int p, int fl, int t)
 			*d = x % 1000000000;
 			carry = x / 1000000000;
 		}
-		if (!z[-1] && z>a) z--;
 		if (carry) *--a = carry;
+		while (z>a && !z[-1]) z--;
 		e2-=sh;
 	}
 	while (e2<0) {
@@ -356,15 +356,15 @@ static int fmt_fp(FILE *f, long double y, int w, int p, int fl, int t)
 				*d = *d + i;
 				while (*d > 999999999) {
 					*d--=0;
+					if (d<a) *--a=0;
 					(*d)++;
 				}
-				if (d<a) a=d;
 				for (i=10, e=9*(r-a); *a>=i; i*=10, e++);
 			}
 		}
 		if (z>d+1) z=d+1;
-		for (; !z[-1] && z>a; z--);
 	}
+	for (; z>a && !z[-1]; z--);
 	
 	if ((t|32)=='g') {
 		if (!p) p++;
