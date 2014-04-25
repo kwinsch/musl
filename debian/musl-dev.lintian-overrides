@@ -1,0 +1,3 @@
+# musl need to use his own namespace to not conflict with other libc's
+# The installed files are the same for CPU architecture
+musl-dev binary: triplet-dir-and-architecture-mismatch

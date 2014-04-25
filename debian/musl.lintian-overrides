@@ -4,5 +4,6 @@ musl binary: shared-lib-without-dependency-information
 musl binary: arch-dependent-file-not-in-arch-specific-directory
 # musl has no SONAME and version by design
 musl binary: sharedobject-in-library-directory-missing-soname
-# musl nee to use his own namespace to not conflict with other libc's
+# musl need to use his own namespace to not conflict with other libc's
+# The installed files are the same for CPU architecture
 musl binary: triplet-dir-and-architecture-mismatch
