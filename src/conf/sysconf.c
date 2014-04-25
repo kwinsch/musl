@@ -3,18 +3,27 @@
 #include <errno.h>
 #include <sys/resource.h>
 #include <signal.h>
+#include <sys/sysinfo.h>
 #include "syscall.h"
 #include "libc.h"
 
-#define VER (-2)
-#define OFLOW (-3)
-#define CPUCNT (-4)
+#define JT(x) (-256|(x))
+#define VER JT(1)
+#define JT_ARG_MAX JT(2)
+#define JT_MQ_PRIO_MAX JT(3)
+#define JT_PAGE_SIZE JT(4)
+#define JT_SEM_VALUE_MAX JT(5)
+#define JT_NPROCESSORS_CONF JT(6)
+#define JT_NPROCESSORS_ONLN JT(7)
+#define JT_PHYS_PAGES JT(8)
+#define JT_AVPHYS_PAGES JT(9)
+
 #define RLIM(x) (-32768|(RLIMIT_ ## x))
 
 long sysconf(int name)
 {
 	static const short values[] = {
-		[_SC_ARG_MAX] = OFLOW,
+		[_SC_ARG_MAX] = JT_ARG_MAX,
 		[_SC_CHILD_MAX] = RLIM(NPROC),
 		[_SC_CLK_TCK] = 100,
 		[_SC_NGROUPS_MAX] = 32,
@@ -42,12 +51,12 @@ long sysconf(int name)
 		[_SC_AIO_PRIO_DELTA_MAX] = 0, /* ?? */
 		[_SC_DELAYTIMER_MAX] = _POSIX_DELAYTIMER_MAX,
 		[_SC_MQ_OPEN_MAX] = -1,
-		[_SC_MQ_PRIO_MAX] = OFLOW,
+		[_SC_MQ_PRIO_MAX] = JT_MQ_PRIO_MAX,
 		[_SC_VERSION] = VER,
-		[_SC_PAGE_SIZE] = OFLOW,
+		[_SC_PAGE_SIZE] = JT_PAGE_SIZE,
 		[_SC_RTSIG_MAX] = _NSIG - 1 - 31 - 3,
 		[_SC_SEM_NSEMS_MAX] = SEM_NSEMS_MAX,
-		[_SC_SEM_VALUE_MAX] = OFLOW,
+		[_SC_SEM_VALUE_MAX] = JT_SEM_VALUE_MAX,
 		[_SC_SIGQUEUE_MAX] = -1,
 		[_SC_TIMER_MAX] = -1,
 		[_SC_BC_BASE_MAX] = _POSIX2_BC_BASE_MAX,
@@ -97,10 +106,10 @@ long sysconf(int name)
 		[_SC_THREAD_PRIO_INHERIT] = -1,
 		[_SC_THREAD_PRIO_PROTECT] = -1,
 		[_SC_THREAD_PROCESS_SHARED] = VER,
-		[_SC_NPROCESSORS_CONF] = CPUCNT,
-		[_SC_NPROCESSORS_ONLN] = CPUCNT,
-		[_SC_PHYS_PAGES] = -1,
-		[_SC_AVPHYS_PAGES] = -1,
+		[_SC_NPROCESSORS_CONF] = JT_NPROCESSORS_CONF,
+		[_SC_NPROCESSORS_ONLN] = JT_NPROCESSORS_ONLN,
+		[_SC_PHYS_PAGES] = JT_PHYS_PAGES,
+		[_SC_AVPHYS_PAGES] = JT_AVPHYS_PAGES,
 		[_SC_ATEXIT_MAX] = -1,
 		[_SC_PASS_MAX] = -1,
 		[_SC_XOPEN_VERSION] = _XOPEN_VERSION,
@@ -215,28 +224,49 @@ long sysconf(int name)
 		[_SC_THREAD_ROBUST_PRIO_INHERIT] = -1,
 		[_SC_THREAD_ROBUST_PRIO_PROTECT] = -1,
 	};
+
 	if (name > sizeof(values)/sizeof(values[0])) {
 		errno = EINVAL;
 		return -1;
-	} else if (values[name] == VER) {
+	} else if (values[name] >= -1) {
+		return values[name];
+	} else if (values[name] < -256) {
+		struct rlimit lim;
+		getrlimit(values[name]&16383, &lim);
+		return lim.rlim_cur > LONG_MAX ? LONG_MAX : lim.rlim_cur;
+	}
+
+	switch ((unsigned char)values[name]) {
+	case VER & 255:
 		return _POSIX_VERSION;
-	} else if (values[name] == OFLOW) {
-		if (name == _SC_ARG_MAX) return ARG_MAX;
-		if (name == _SC_SEM_VALUE_MAX) return SEM_VALUE_MAX;
-		if (name == _SC_MQ_PRIO_MAX) return MQ_PRIO_MAX;
-		/* name == _SC_PAGE_SIZE */
+	case JT_ARG_MAX & 255:
+		return ARG_MAX;
+	case JT_MQ_PRIO_MAX & 255:
+		return MQ_PRIO_MAX;
+	case JT_PAGE_SIZE & 255:
 		return PAGE_SIZE;
-	} else if (values[name] == CPUCNT) {
+	case JT_SEM_VALUE_MAX & 255:
+		return SEM_VALUE_MAX;
+	case JT_NPROCESSORS_CONF & 255:
+	case JT_NPROCESSORS_ONLN & 255: ;
 		unsigned char set[128] = {1};
 		int i, cnt;
 		__syscall(SYS_sched_getaffinity, 0, sizeof set, set);
 		for (i=cnt=0; i<sizeof set; i++)
 			for (; set[i]; set[i]&=set[i]-1, cnt++);
 		return cnt;
-	} else if (values[name] < OFLOW) {
-		long lim[2];
-		__syscall(SYS_getrlimit, values[name]&16383, lim);
-		return lim[0] < 0 ? LONG_MAX : lim[0];
+	case JT_PHYS_PAGES & 255:
+	case JT_AVPHYS_PAGES & 255: ;
+		unsigned long long mem;
+		int __lsysinfo(struct sysinfo *);
+		struct sysinfo si;
+		__lsysinfo(&si);
+		if (!si.mem_unit) si.mem_unit = 1;
+		if (name==_SC_PHYS_PAGES) mem = si.totalram;
+		else mem = si.freeram + si.bufferram;
+		mem *= si.mem_unit;
+		mem /= PAGE_SIZE;
+		return (mem > LONG_MAX) ? LONG_MAX : mem;
 	}
 	return values[name];
 }
