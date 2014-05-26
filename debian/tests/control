@@ -1,0 +1,2 @@
+Tests: build
+Depends: musl-tools, build-essential
