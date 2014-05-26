@@ -125,6 +125,7 @@ debug=no
 warnings=no
 shared=yes
 static=yes
+wrapper=auto
 
 for arg ; do
 case "$arg" in
@@ -189,24 +190,43 @@ trycc ${CROSS_COMPILE}cc
 printf "%s\n" "$CC"
 test -n "$CC" || { echo "$0: cannot find a C compiler" ; exit 1 ; }
 
+printf "checking whether C compiler works... "
+echo "typedef int x;" > "$tmpc"
+if output=$($CC $CPPFLAGS $CFLAGS -c -o /dev/null "$tmpc" 2>&1) ; then
+printf "yes\n"
+else
+printf "no; compiler output follows:\n%s\n" "$output"
+exit 1
+fi
+
+#
+# Need to know if the compiler is gcc to decide whether to build the
+# musl-gcc wrapper, and for critical bug detection in some gcc versions.
+#
+printf "checking whether compiler is gcc... "
+if fnmatch '*gcc\ version*' "$($CC -v 2>&1)" ; then
+cc_is_gcc=yes
+else
+cc_is_gcc=no
+fi
+echo "$cc_is_gcc"
+
 #
 # Only build musl-gcc wrapper if toolchain does not already target musl
 #
-if test -z "$wrapper" ; then
-printf "checking whether compiler is gcc... "
-if fnmatch '*gcc\ version*' "$($CC -v 2>&1)" ; then
-echo yes
+if test "$wrapper" = auto ; then
 printf "checking whether to build musl-gcc wrapper... "
+if test "$cc_is_gcc" = yes ; then
 wrapper=yes
 while read line ; do
 case "$line" in */ld-musl-*) wrapper=no ;; esac
 done <<EOF
 $($CC -dumpspecs)
 EOF
-echo $wrapper
 else
-echo no
+wrapper=no
 fi
+echo "$wrapper"
 fi
 
 
@@ -429,7 +449,7 @@ test "$ARCH" = "microblaze" && trycppif __MICROBLAZEEL__ "$t" \
 
 if test "$ARCH" = "sh" ; then
 trycppif __BIG_ENDIAN__ "$t" && SUBARCH=${SUBARCH}eb
-if trycppif __SH_FPU_ANY__ "$t" ; then
+if trycppif "__SH_FPU_ANY__ || __SH4__" "$t" ; then
 # Some sh configurations are broken and replace double with float
 # rather than using softfloat when the fpu is present but only
 # supports single precision. Reject them.
@@ -475,6 +495,27 @@ printf "no\n"
 fail "$0: error: unsupported long double type"
 fi
 
+#
+# Check for known bug in GCC 4.9.0 that results in a broken libc.
+#
+if test "$cc_is_gcc" = yes ; then
+printf "checking for gcc constant folding bug with weak aliases... "
+echo 'static int x = 0;' > "$tmpc"
+echo 'extern int y __attribute__((__weak__, __alias__("x")));' >> "$tmpc"
+echo 'extern int should_appear;' >> "$tmpc"
+echo 'int foo() { return y ? should_appear : 0; }' >> "$tmpc"
+case "$($CC $CFLAGS_C99FSE -I./arch/$ARCH -I./include \
+  $CPPFLAGS $CFLAGS_AUTO $CFLAGS -S -o - "$tmpc" 2>/dev/null)" in
+*should_appear*)
+printf "no\n"
+;;
+*)
+printf "yes\n"
+fail "$0: error: broken compiler; try CFLAGS=-fno-toplevel-reorder"
+;;
+esac
+fi
+
 printf "creating config.mak... "
 
 cmdline=$(quote "$0")
@@ -497,7 +538,7 @@ libdir = $libdir
 includedir = $includedir
 syslibdir = $syslibdir
 CC = $CC
-CFLAGS= $CFLAGS_AUTO $CFLAGS
+CFLAGS = $CFLAGS_AUTO $CFLAGS
 CFLAGS_C99FSE = $CFLAGS_C99FSE
 CFLAGS_MEMOPS = $CFLAGS_MEMOPS
 CPPFLAGS = $CPPFLAGS
