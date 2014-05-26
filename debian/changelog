@@ -1,6 +1,7 @@
 musl (1.1.1-1) unstable; urgency=low
 
   * Import upstream version 1.1.1
+  * Includes fix for build regression on armhf and armel
 
  -- Kevin Bortis <pkgs@bortis.ch>  Mon, 26 May 2014 22:45:52 +0200
 
