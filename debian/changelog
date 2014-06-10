@@ -1,3 +1,10 @@
+musl (1.1.2.1) unstable; urgency=low
+
+  * Import upstream version 1.1.2
+  * Fixes possible stack-based buffer overflow CVE-2014-3484 (Closes: #750815) 
+
+ -- Kevin Bortis <pkgs@bortis.ch>  Tue, 10 Jun 2014 17:36:58 +0200
+
 musl (1.1.1-1) unstable; urgency=low
 
   * Import upstream version 1.1.1
