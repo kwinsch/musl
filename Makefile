@@ -125,7 +125,7 @@ $(foreach s,$(wildcard src/*/$(ARCH)*/*.s),$(eval $(call mkasmdep,$(s))))
 
 lib/libc.so: $(LOBJS)
 	$(CC) $(CFLAGS_ALL_SHARED) $(LDFLAGS) -nostdlib -shared \
-	-Wl,-e,_start -Wl,-Bsymbolic-functions \
+	-Wl,-e,_dlstart -Wl,-Bsymbolic-functions \
 	-o $@ $(LOBJS) $(LIBCC)
 
 lib/libc.a: $(OBJS)
@@ -171,7 +171,11 @@ install-headers: $(ALL_INCLUDES:include/%=$(DESTDIR)$(includedir)/%)
 
 install-tools: $(ALL_TOOLS:tools/%=$(DESTDIR)$(bindir)/%)
 
+musl-git-%.tar.gz: .git
+	 git archive --format=tar.gz --prefix=$(patsubst %.tar.gz,%,$@)/ -o $@ $(patsubst musl-git-%.tar.gz,%,$@)
 
+musl-%.tar.gz: .git
+	 git archive --format=tar.gz --prefix=$(patsubst %.tar.gz,%,$@)/ -o $@ v$(patsubst musl-%.tar.gz,%,$@)
 
 .PRECIOUS: $(CRT_LIBS:lib/%=crt/%)
 

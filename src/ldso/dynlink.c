@@ -1,6 +1,8 @@
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
+#include <stddef.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdint.h>
@@ -48,6 +50,11 @@ struct debug {
 	void *base;
 };
 
+struct td_index {
+	size_t args[2];
+	struct td_index *next;
+};
+
 struct dso {
 	unsigned char *base;
 	char *name;
@@ -79,6 +86,7 @@ struct dso {
 	void **new_dtv;
 	unsigned char *new_tls;
 	int new_dtv_idx, new_tls_idx;
+	struct td_index *td_index;
 	struct dso *fini_next;
 	char *shortname;
 	char buf[];
@@ -87,6 +95,24 @@ struct dso {
 struct symdef {
 	Sym *sym;
 	struct dso *dso;
+};
+
+enum {
+	REL_ERR,
+	REL_SYMBOLIC,
+	REL_GOT,
+	REL_PLT,
+	REL_RELATIVE,
+	REL_OFFSET,
+	REL_OFFSET32,
+	REL_COPY,
+	REL_SYM_OR_REL,
+	REL_TLS, /* everything past here is TLS */
+	REL_DTPMOD,
+	REL_DTPOFF,
+	REL_TPOFF,
+	REL_TPOFF_NEG,
+	REL_TLSDESC,
 };
 
 #include "reloc.h"
@@ -107,6 +133,7 @@ static jmp_buf *rtld_fail;
 static pthread_rwlock_t lock;
 static struct debug debug;
 static size_t tls_cnt, tls_offset, tls_align = 4*sizeof(size_t);
+static size_t static_tls_cnt;
 static pthread_mutex_t init_fini_lock = { ._m_type = PTHREAD_MUTEX_RECURSIVE };
 static long long builtin_tls[(sizeof(struct pthread) + 64)/sizeof(long long)];
 
@@ -130,6 +157,17 @@ static int search_vec(size_t *v, size_t *r, size_t key)
 		if (!v[0]) return 0;
 	*r = v[1];
 	return 1;
+}
+
+static void error(const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	vsnprintf(errbuf, sizeof errbuf, fmt, ap);
+	va_end(ap);
+	if (runtime) longjmp(*rtld_fail, 1);
+	dprintf(2, "%s\n", errbuf);
+	ldso_fail = 1;
 }
 
 static uint32_t sysv_hash(const char *s0)
@@ -227,6 +265,10 @@ static struct symdef find_sym(struct dso *dso, const char *s, int need_def)
 	return def;
 }
 
+#define NO_INLINE_ADDEND (1<<REL_COPY | 1<<REL_GOT | 1<<REL_PLT)
+
+ptrdiff_t __tlsdesc_static(), __tlsdesc_dynamic();
+
 static void do_relocs(struct dso *dso, size_t *rel, size_t rel_size, size_t stride)
 {
 	unsigned char *base = dso->base;
@@ -235,36 +277,116 @@ static void do_relocs(struct dso *dso, size_t *rel, size_t rel_size, size_t stri
 	Sym *sym;
 	const char *name;
 	void *ctx;
-	int type;
+	int astype, type;
 	int sym_index;
 	struct symdef def;
+	size_t *reloc_addr;
+	size_t sym_val;
+	size_t tls_val;
+	size_t addend;
 
 	for (; rel_size; rel+=stride, rel_size-=stride*sizeof(size_t)) {
-		type = R_TYPE(rel[1]);
+		astype = R_TYPE(rel[1]);
+		if (!astype) continue;
+		type = remap_rel(astype);
+		if (!type) {
+			error(errbuf, sizeof errbuf,
+				"Error relocating %s: unsupported relocation type %d",
+				dso->name, astype);
+			continue;
+		}
 		sym_index = R_SYM(rel[1]);
+		reloc_addr = (void *)(base + rel[0]);
 		if (sym_index) {
 			sym = syms + sym_index;
 			name = strings + sym->st_name;
-			ctx = IS_COPY(type) ? head->next : head;
-			def = find_sym(ctx, name, IS_PLT(type));
+			ctx = type==REL_COPY ? head->next : head;
+			def = find_sym(ctx, name, type==REL_PLT);
 			if (!def.sym && (sym->st_shndx != SHN_UNDEF
 			    || sym->st_info>>4 != STB_WEAK)) {
-				snprintf(errbuf, sizeof errbuf,
+				error(errbuf, sizeof errbuf,
 					"Error relocating %s: %s: symbol not found",
 					dso->name, name);
-				if (runtime) longjmp(*rtld_fail, 1);
-				dprintf(2, "%s\n", errbuf);
-				ldso_fail = 1;
 				continue;
 			}
 		} else {
 			sym = 0;
 			def.sym = 0;
-			def.dso = 0;
+			def.dso = dso;
 		}
-		do_single_reloc(dso, base, (void *)(base + rel[0]), type,
-			stride>2 ? rel[2] : 0, sym, sym?sym->st_size:0, def,
-			def.sym?(size_t)(def.dso->base+def.sym->st_value):0);
+
+		addend = stride>2 ? rel[2]
+			: (1<<type & NO_INLINE_ADDEND) ? 0
+			: *reloc_addr;
+
+		sym_val = def.sym ? (size_t)def.dso->base+def.sym->st_value : 0;
+		tls_val = def.sym ? def.sym->st_value : 0;
+
+		switch(type) {
+		case REL_OFFSET:
+			addend -= (size_t)reloc_addr;
+		case REL_SYMBOLIC:
+		case REL_GOT:
+		case REL_PLT:
+			*reloc_addr = sym_val + addend;
+			break;
+		case REL_RELATIVE:
+			*reloc_addr = (size_t)base + addend;
+			break;
+		case REL_SYM_OR_REL:
+			if (sym) *reloc_addr = sym_val + addend;
+			else *reloc_addr = (size_t)base + addend;
+			break;
+		case REL_COPY:
+			memcpy(reloc_addr, (void *)sym_val, sym->st_size);
+			break;
+		case REL_OFFSET32:
+			*(uint32_t *)reloc_addr = sym_val + addend
+				- (size_t)reloc_addr;
+			break;
+		case REL_DTPMOD:
+			*reloc_addr = def.dso->tls_id;
+			break;
+		case REL_DTPOFF:
+			*reloc_addr = tls_val + addend;
+			break;
+#ifdef TLS_ABOVE_TP
+		case REL_TPOFF:
+			*reloc_addr = tls_val + def.dso->tls_offset + TPOFF_K + addend;
+			break;
+#else
+		case REL_TPOFF:
+			*reloc_addr = tls_val - def.dso->tls_offset + addend;
+			break;
+		case REL_TPOFF_NEG:
+			*reloc_addr = def.dso->tls_offset - tls_val + addend;
+			break;
+#endif
+		case REL_TLSDESC:
+			if (stride<3) addend = reloc_addr[1];
+			if (runtime && def.dso->tls_id >= static_tls_cnt) {
+				struct td_index *new = malloc(sizeof *new);
+				if (!new) error(errbuf, sizeof errbuf,
+					"Error relocating %s: cannot allocate TLSDESC for %s",
+					dso->name, sym ? name : "(local)" );
+				new->next = dso->td_index;
+				dso->td_index = new;
+				new->args[0] = def.dso->tls_id;
+				new->args[1] = tls_val + addend;
+				reloc_addr[0] = (size_t)__tlsdesc_dynamic;
+				reloc_addr[1] = (size_t)new;
+			} else {
+				reloc_addr[0] = (size_t)__tlsdesc_static;
+#ifdef TLS_ABOVE_TP
+				reloc_addr[1] = tls_val + def.dso->tls_offset
+					+ TPOFF_K + addend;
+#else
+				reloc_addr[1] = tls_val - def.dso->tls_offset
+					+ addend;
+#endif
+			}
+			break;
+		}
 	}
 }
 
@@ -717,12 +839,9 @@ static void load_deps(struct dso *p)
 			if (p->dynv[i] != DT_NEEDED) continue;
 			dep = load_library(p->strings + p->dynv[i+1], p);
 			if (!dep) {
-				snprintf(errbuf, sizeof errbuf,
+				error(errbuf, sizeof errbuf,
 					"Error loading shared library %s: %m (needed by %s)",
 					p->strings + p->dynv[i+1], p->name);
-				if (runtime) longjmp(*rtld_fail, 1);
-				dprintf(2, "%s\n", errbuf);
-				ldso_fail = 1;
 				continue;
 			}
 			if (runtime) {
@@ -771,12 +890,9 @@ static void reloc_all(struct dso *p)
 
 		if (p->relro_start != p->relro_end &&
 		    mprotect(p->base+p->relro_start, p->relro_end-p->relro_start, PROT_READ) < 0) {
-			snprintf(errbuf, sizeof errbuf,
+			error(errbuf, sizeof errbuf,
 				"Error relocating %s: RELRO protection failed: %m",
 				p->name);
-			if (runtime) longjmp(*rtld_fail, 1);
-			dprintf(2, "%s\n", errbuf);
-			ldso_fail = 1;
 		}
 
 		p->relocated = 1;
@@ -915,17 +1031,15 @@ void *__copy_tls(unsigned char *mem)
 	return td;
 }
 
-void *__tls_get_addr(size_t *v)
+void *__tls_get_new(size_t *v)
 {
 	pthread_t self = __pthread_self();
-	if (v[0]<=(size_t)self->dtv[0] && self->dtv[v[0]])
-		return (char *)self->dtv[v[0]]+v[1];
 
 	/* Block signals to make accessing new TLS async-signal-safe */
 	sigset_t set;
-	pthread_sigmask(SIG_BLOCK, SIGALL_SET, &set);
-	if (v[0]<=(size_t)self->dtv[0] && self->dtv[v[0]]) {
-		pthread_sigmask(SIG_SETMASK, &set, 0);
+	__block_all_sigs(&set);
+	if (v[0]<=(size_t)self->dtv[0]) {
+		__restore_sigs(&set);
 		return (char *)self->dtv[v[0]]+v[1];
 	}
 
@@ -946,13 +1060,19 @@ void *__tls_get_addr(size_t *v)
 		self->dtv = newdtv;
 	}
 
-	/* Get new TLS memory from new DSO */
-	unsigned char *mem = p->new_tls +
-		(p->tls_size + p->tls_align) * a_fetch_add(&p->new_tls_idx,1);
-	mem += ((uintptr_t)p->tls_image - (uintptr_t)mem) & (p->tls_align-1);
-	self->dtv[v[0]] = mem;
-	memcpy(mem, p->tls_image, p->tls_len);
-	pthread_sigmask(SIG_SETMASK, &set, 0);
+	/* Get new TLS memory from all new DSOs up to the requested one */
+	unsigned char *mem;
+	for (p=head; ; p=p->next) {
+		if (!p->tls_id || self->dtv[p->tls_id]) continue;
+		mem = p->new_tls + (p->tls_size + p->tls_align)
+			* a_fetch_add(&p->new_tls_idx,1);
+		mem += ((uintptr_t)p->tls_image - (uintptr_t)mem)
+			& (p->tls_align-1);
+		self->dtv[p->tls_id] = mem;
+		memcpy(mem, p->tls_image, p->tls_len);
+		if (p->tls_id == v[0]) break;
+	}
+	__restore_sigs(&set);
 	return mem + v[1];
 }
 
@@ -1196,6 +1316,7 @@ void *__dynlink(int argc, char **argv)
 		dprintf(2, "%s: Thread-local storage not supported by kernel.\n", argv[0]);
 		_exit(127);
 	}
+	static_tls_cnt = tls_cnt;
 
 	if (ldso_fail) _exit(127);
 	if (ldd_mode) _exit(0);
@@ -1251,6 +1372,11 @@ void *dlopen(const char *file, int mode)
 		for (p=orig_tail->next; p; p=next) {
 			next = p->next;
 			munmap(p->map, p->map_len);
+			while (p->td_index) {
+				void *tmp = p->td_index->next;
+				free(p->td_index);
+				p->td_index = tmp;
+			}
 			free(p->deps);
 			free(p);
 		}
@@ -1313,6 +1439,8 @@ static int invalid_dso_handle(void *h)
 	errflag = 1;
 	return 1;
 }
+
+void *__tls_get_addr(size_t *);
 
 static void *do_dlsym(struct dso *p, const char *s, void *ra)
 {

@@ -11,17 +11,11 @@ int __init_tp(void *p)
 {
 	pthread_t td = p;
 	td->self = td;
-	if (__set_thread_area(TP_ADJ(p)) < 0)
-		return -1;
-	td->tid = td->pid = __syscall(SYS_set_tid_address, &td->tid);
-	td->errno_ptr = &td->errno_val;
-	/* Currently, both of these predicates depend in the same thing:
-	 * successful initialization of the thread pointer. However, in
-	 * the future, we may support setups where setting the thread
-	 * pointer is possible but threads other than the main thread
-	 * cannot work, so it's best to keep the predicates separate. */
+	int r = __set_thread_area(TP_ADJ(p));
+	if (r < 0) return -1;
+	if (!r) libc.can_do_threads = 1;
 	libc.has_thread_pointer = 1;
-	libc.can_do_threads = 1;
+	td->tid = td->pid = __syscall(SYS_set_tid_address, &td->tid);
 	return 0;
 }
 
@@ -57,11 +51,6 @@ void *__copy_tls(unsigned char *mem)
 	dtv[1] = mem;
 	memcpy(mem, T.image, T.len);
 	return td;
-}
-
-void *__tls_get_addr(size_t *v)
-{
-	return (char *)__pthread_self()->dtv[1]+v[1];
 }
 
 #if ULONG_MAX == 0xffffffff
