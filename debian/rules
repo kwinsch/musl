@@ -35,6 +35,11 @@ else
   CROSS_COMPILE=$(DEB_HOST_GNU_TYPE)-
   export CROSS_COMPILE
 endif
+# Temporarly force gcc-4.8 because of gcc 4.9.0 bug #748681
+# This enforcement breaks potential cross compilation
+# Remove the following line once #748681 is fixed and
+# remove gcc-4.8 depency from control file
+CC=$(DEB_HOST_GNU_TYPE)-gcc-4.8
 export CC
 
 # Clear variables to make musl happy
