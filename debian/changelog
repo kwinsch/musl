@@ -1,3 +1,10 @@
+musl (1.1.4-1) unstable; urgency=low
+
+  * Import upstream version 1.1.4
+  * Switched back to default gcc
+
+ -- Kevin Bortis <pkgs@bortis.ch>  Mon, 04 Aug 2014 21:22:20 +0200
+
 musl (1.1.3-1) unstable; urgency=low
 
   * Import upstream version 1.1.3
