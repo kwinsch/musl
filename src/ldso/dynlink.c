@@ -233,6 +233,10 @@ static Sym *gnu_lookup(const char *s, uint32_t h1, struct dso *dso)
 #define OK_TYPES (1<<STT_NOTYPE | 1<<STT_OBJECT | 1<<STT_FUNC | 1<<STT_COMMON | 1<<STT_TLS)
 #define OK_BINDS (1<<STB_GLOBAL | 1<<STB_WEAK | 1<<STB_GNU_UNIQUE)
 
+#ifndef ARCH_SYM_REJECT_UND
+#define ARCH_SYM_REJECT_UND(s) 0
+#endif
+
 static struct symdef find_sym(struct dso *dso, const char *s, int need_def)
 {
 	uint32_t h = 0, gh = 0;
@@ -249,7 +253,8 @@ static struct symdef find_sym(struct dso *dso, const char *s, int need_def)
 		}
 		if (!sym) continue;
 		if (!sym->st_shndx)
-			if (need_def || (sym->st_info&0xf) == STT_TLS)
+			if (need_def || (sym->st_info&0xf) == STT_TLS
+			    || ARCH_SYM_REJECT_UND(sym))
 				continue;
 		if (!sym->st_value)
 			if ((sym->st_info&0xf) != STT_TLS)
@@ -290,8 +295,7 @@ static void do_relocs(struct dso *dso, size_t *rel, size_t rel_size, size_t stri
 		if (!astype) continue;
 		type = remap_rel(astype);
 		if (!type) {
-			error(errbuf, sizeof errbuf,
-				"Error relocating %s: unsupported relocation type %d",
+			error("Error relocating %s: unsupported relocation type %d",
 				dso->name, astype);
 			continue;
 		}
@@ -304,8 +308,7 @@ static void do_relocs(struct dso *dso, size_t *rel, size_t rel_size, size_t stri
 			def = find_sym(ctx, name, type==REL_PLT);
 			if (!def.sym && (sym->st_shndx != SHN_UNDEF
 			    || sym->st_info>>4 != STB_WEAK)) {
-				error(errbuf, sizeof errbuf,
-					"Error relocating %s: %s: symbol not found",
+				error("Error relocating %s: %s: symbol not found",
 					dso->name, name);
 				continue;
 			}
@@ -366,7 +369,7 @@ static void do_relocs(struct dso *dso, size_t *rel, size_t rel_size, size_t stri
 			if (stride<3) addend = reloc_addr[1];
 			if (runtime && def.dso->tls_id >= static_tls_cnt) {
 				struct td_index *new = malloc(sizeof *new);
-				if (!new) error(errbuf, sizeof errbuf,
+				if (!new) error(
 					"Error relocating %s: cannot allocate TLSDESC for %s",
 					dso->name, sym ? name : "(local)" );
 				new->next = dso->td_index;
@@ -660,6 +663,11 @@ static struct dso *load_library(const char *name, struct dso *needed_by)
 	int n_th = 0;
 	int is_self = 0;
 
+	if (!*name) {
+		errno = EINVAL;
+		return 0;
+	}
+
 	/* Catch and block attempts to reload the implementation itself */
 	if (name[0]=='l' && name[1]=='i' && name[2]=='b') {
 		static const char *rp, reserved[] =
@@ -839,8 +847,7 @@ static void load_deps(struct dso *p)
 			if (p->dynv[i] != DT_NEEDED) continue;
 			dep = load_library(p->strings + p->dynv[i+1], p);
 			if (!dep) {
-				error(errbuf, sizeof errbuf,
-					"Error loading shared library %s: %m (needed by %s)",
+				error("Error loading shared library %s: %m (needed by %s)",
 					p->strings + p->dynv[i+1], p->name);
 				continue;
 			}
@@ -860,8 +867,8 @@ static void load_preload(char *s)
 	int tmp;
 	char *z;
 	for (z=s; *z; s=z) {
-		for (   ; *s && isspace(*s); s++);
-		for (z=s; *z && !isspace(*z); z++);
+		for (   ; *s && (isspace(*s) || *s==':'); s++);
+		for (z=s; *z && !isspace(*z) && *z!=':'; z++);
 		tmp = *z;
 		*z = 0;
 		load_library(s, 0);
@@ -890,8 +897,7 @@ static void reloc_all(struct dso *p)
 
 		if (p->relro_start != p->relro_end &&
 		    mprotect(p->base+p->relro_start, p->relro_end-p->relro_start, PROT_READ) < 0) {
-			error(errbuf, sizeof errbuf,
-				"Error relocating %s: RELRO protection failed: %m",
+			error("Error relocating %s: RELRO protection failed: %m",
 				p->name);
 		}
 

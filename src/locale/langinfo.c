@@ -1,5 +1,6 @@
 #include <locale.h>
 #include <langinfo.h>
+#include "locale_impl.h"
 #include "libc.h"
 
 static const char c_time[] =
@@ -17,12 +18,13 @@ static const char c_time[] =
 	"%H:%M:%S\0"
 	"%I:%M:%S %p\0"
 	"\0"
+	"\0"
 	"%m/%d/%y\0"
-	"0123456789"
+	"0123456789\0"
 	"%a %b %e %T %Y\0"
 	"%H:%M:%S";
 
-static const char c_messages[] = "^[yY]\0" "^[nN]";
+static const char c_messages[] = "^[yY]\0" "^[nN]\0" "yes\0" "no";
 static const char c_numeric[] = ".\0" "";
 
 char *__nl_langinfo_l(nl_item item, locale_t loc)
@@ -47,7 +49,7 @@ char *__nl_langinfo_l(nl_item item, locale_t loc)
 		str = "";
 		break;
 	case LC_MESSAGES:
-		if (idx > 1) return NULL;
+		if (idx > 3) return NULL;
 		str = c_messages;
 		break;
 	default:
@@ -55,12 +57,13 @@ char *__nl_langinfo_l(nl_item item, locale_t loc)
 	}
 
 	for (; idx; idx--, str++) for (; *str; str++);
+	if (cat != LC_NUMERIC && *str) str = LCTRANS(str, cat, loc);
 	return (char *)str;
 }
 
 char *__nl_langinfo(nl_item item)
 {
-	return __nl_langinfo_l(item, 0);
+	return __nl_langinfo_l(item, CURRENT_LOCALE);
 }
 
 weak_alias(__nl_langinfo, nl_langinfo);

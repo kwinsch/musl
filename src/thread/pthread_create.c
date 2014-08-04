@@ -57,6 +57,12 @@ _Noreturn void pthread_exit(void *result)
 		exit(0);
 	}
 
+	if (self->locale != &libc.global_locale) {
+		a_dec(&libc.uselocale_cnt);
+		if (self->locale->ctype_utf8)
+			a_dec(&libc.bytelocale_cnt_minus_1);
+	}
+
 	if (self->detached && self->map_base) {
 		/* Detached threads must avoid the kernel clear_child_tid
 		 * feature, since the virtual address will have been
@@ -110,12 +116,12 @@ static int start(void *p)
 #define ROUND(x) (((x)+PAGE_SIZE-1)&-PAGE_SIZE)
 
 /* pthread_key_create.c overrides this */
-static const size_t dummy = 0;
+static volatile size_t dummy = 0;
 weak_alias(dummy, __pthread_tsd_size);
-static void *const dummy_tsd[1] = { 0 };
+static void *dummy_tsd[1] = { 0 };
 weak_alias(dummy_tsd, __pthread_tsd_main);
 
-static FILE *const dummy_file = 0;
+static FILE *volatile dummy_file = 0;
 weak_alias(dummy_file, __stdin_used);
 weak_alias(dummy_file, __stdout_used);
 weak_alias(dummy_file, __stderr_used);
@@ -200,11 +206,11 @@ int pthread_create(pthread_t *restrict res, const pthread_attr_t *restrict attrp
 	new->map_size = size;
 	new->stack = stack;
 	new->stack_size = stack - stack_limit;
-	new->pid = self->pid;
 	new->start = entry;
 	new->start_arg = arg;
 	new->self = new;
 	new->tsd = (void *)tsd;
+	new->locale = &libc.global_locale;
 	if (attr._a_detach) {
 		new->detached = 1;
 		flags -= CLONE_CHILD_CLEARTID;
