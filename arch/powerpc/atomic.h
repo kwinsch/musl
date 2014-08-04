@@ -25,13 +25,16 @@ static inline int a_ctz_64(uint64_t x)
 
 static inline int a_cas(volatile int *p, int t, int s)
 {
-	__asm__("1:	lwarx %0, 0, %1\n"
+	__asm__("\n"
+		"	sync\n"
+		"1:	lwarx %0, 0, %4\n"
 		"	cmpw %0, %2\n"
 		"	bne 1f\n"
-		"	stwcx. %3, 0, %1\n"
+		"	stwcx. %3, 0, %4\n"
 		"	bne- 1b\n"
+		"	isync\n"
 		"1:	\n"
-		: "=&r"(t) : "r"(p), "r"(t), "r"(s) : "cc", "memory" );
+		: "=&r"(t), "+m"(*p) : "r"(t), "r"(s), "r"(p) : "cc", "memory" );
         return t;
 }
 
@@ -39,12 +42,6 @@ static inline void *a_cas_p(volatile void *p, void *t, void *s)
 {
 	return (void *)a_cas(p, (int)t, (int)s);
 }
-
-static inline long a_cas_l(volatile void *p, long t, long s)
-{
-	return a_cas(p, t, s);
-}
-
 
 static inline int a_swap(volatile int *x, int v)
 {
@@ -74,7 +71,11 @@ static inline void a_dec(volatile int *x)
 
 static inline void a_store(volatile int *p, int x)
 {
-	*p=x;
+	__asm__ __volatile__ ("\n"
+		"	sync\n"
+		"	stw %1, %0\n"
+		"	isync\n"
+		: "=m"(*p) : "r"(x) : "memory" );
 }
 
 static inline void a_spin()

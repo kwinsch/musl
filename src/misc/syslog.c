@@ -7,6 +7,8 @@
 #include <signal.h>
 #include <string.h>
 #include <pthread.h>
+#include <errno.h>
+#include <fcntl.h>
 #include "libc.h"
 #include "atomic.h"
 
@@ -76,13 +78,13 @@ static void _vsyslog(int priority, const char *message, va_list ap)
 	time_t now;
 	struct tm tm;
 	char buf[256];
+	int errno_save = errno;
 	int pid;
 	int l, l2;
+	int hlen;
+	int fd;
 
-	if (log_fd < 0) {
-		__openlog();
-		if (log_fd < 0) return;
-	}
+	if (log_fd < 0) __openlog();
 
 	if (!(priority & LOG_FACMASK)) priority |= log_facility;
 
@@ -91,14 +93,22 @@ static void _vsyslog(int priority, const char *message, va_list ap)
 	strftime(timebuf, sizeof timebuf, "%b %e %T", &tm);
 
 	pid = (log_opt & LOG_PID) ? getpid() : 0;
-	l = snprintf(buf, sizeof buf, "<%d>%s %s%s%.0d%s: ",
-		priority, timebuf, log_ident, "["+!pid, pid, "]"+!pid);
+	l = snprintf(buf, sizeof buf, "<%d>%s %n%s%s%.0d%s: ",
+		priority, timebuf, &hlen, log_ident, "["+!pid, pid, "]"+!pid);
+	errno = errno_save;
 	l2 = vsnprintf(buf+l, sizeof buf - l, message, ap);
 	if (l2 >= 0) {
 		if (l2 >= sizeof buf - l) l = sizeof buf - 1;
 		else l += l2;
 		if (buf[l-1] != '\n') buf[l++] = '\n';
-		send(log_fd, buf, l, 0);
+		if (send(log_fd, buf, l, 0) < 0 && (log_opt & LOG_CONS)) {
+			fd = open("/dev/console", O_WRONLY|O_NOCTTY|O_CLOEXEC);
+			if (fd >= 0) {
+				dprintf(fd, "%.*s", l-hlen, buf+hlen);
+				close(fd);
+			}
+		}
+		if (log_opt & LOG_PERROR) dprintf(2, "%.*s", l-hlen, buf+hlen);
 	}
 }
 
