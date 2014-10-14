@@ -33,9 +33,9 @@ struct pthread {
 	pthread_attr_t attr;
 	volatile int dead;
 	struct {
-		void **head;
+		volatile void *volatile head;
 		long off;
-		void *pending;
+		volatile void *volatile pending;
 	} robust_list;
 	int unblock_cancel;
 	int timer_id;
@@ -44,6 +44,7 @@ struct pthread {
 	int exitlock[2];
 	int startlock[2];
 	unsigned long sigmask[_NSIG/8/sizeof(long)];
+	void *stdio_locks;
 };
 
 struct __timer {
@@ -66,16 +67,16 @@ struct __timer {
 #define _m_prev __u.__p[3]
 #define _m_next __u.__p[4]
 #define _m_count __u.__i[5]
-#define _c_mutex __u.__p[0]
+#define _c_shared __u.__p[0]
 #define _c_seq __u.__i[2]
 #define _c_waiters __u.__i[3]
 #define _c_clock __u.__i[4]
-#define _c_lock __u.__i[5]
-#define _c_lockwait __u.__i[6]
-#define _c_waiters2 __u.__i[7]
-#define _c_destroy __u.__i[8]
+#define _c_lock __u.__i[8]
+#define _c_head __u.__p[1]
+#define _c_tail __u.__p[5]
 #define _rw_lock __u.__i[0]
 #define _rw_waiters __u.__i[1]
+#define _rw_shared __u.__i[2]
 #define _b_lock __u.__i[0]
 #define _b_waiters __u.__i[1]
 #define _b_limit __u.__i[2]
@@ -108,8 +109,13 @@ void __unmapself(void *, size_t);
 
 int __timedwait(volatile int *, int, clockid_t, const struct timespec *, void (*)(void *), void *, int);
 void __wait(volatile int *, volatile int *, int, int);
-#define __wake(addr, cnt, priv) \
-	__syscall(SYS_futex, addr, FUTEX_WAKE, (cnt)<0?INT_MAX:(cnt))
+static inline void __wake(volatile void *addr, int cnt, int priv)
+{
+	if (priv) priv = 128;
+	if (cnt<0) cnt = INT_MAX;
+	__syscall(SYS_futex, addr, FUTEX_WAKE|priv, cnt) != -ENOSYS ||
+	__syscall(SYS_futex, addr, FUTEX_WAKE, cnt);
+}
 
 void __acquire_ptc();
 void __release_ptc();
@@ -121,5 +127,7 @@ void __restore_sigs(void *);
 
 #define DEFAULT_STACK_SIZE 81920
 #define DEFAULT_GUARD_SIZE PAGE_SIZE
+
+#define __ATTRP_C11_THREAD ((void*)(uintptr_t)-1)
 
 #endif
