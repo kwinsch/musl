@@ -1,3 +1,9 @@
+musl (1.1.5-1) unstable; urgency=low
+
+  * Import upstream version 1.1.5 
+
+ -- Kevin Bortis <pkgs@bortis.ch>  Tue, 14 Oct 2014 21:13:35 +0200
+
 musl (1.1.4-1) unstable; urgency=low
 
   * Import upstream version 1.1.4
