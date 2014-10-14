@@ -3,6 +3,11 @@
 #include "stdio_impl.h"
 #include "libc.h"
 #include <sys/mman.h>
+#include <string.h>
+
+void *__mmap(void *, size_t, int, int, int, off_t);
+int __munmap(void *, size_t);
+int __mprotect(void *, size_t, int);
 
 static void dummy_0()
 {
@@ -10,8 +15,10 @@ static void dummy_0()
 weak_alias(dummy_0, __acquire_ptc);
 weak_alias(dummy_0, __release_ptc);
 weak_alias(dummy_0, __pthread_tsd_run_dtors);
+weak_alias(dummy_0, __do_private_robust_list);
+weak_alias(dummy_0, __do_orphaned_stdio_locks);
 
-_Noreturn void pthread_exit(void *result)
+_Noreturn void __pthread_exit(void *result)
 {
 	pthread_t self = __pthread_self();
 	sigset_t set;
@@ -63,6 +70,9 @@ _Noreturn void pthread_exit(void *result)
 			a_dec(&libc.bytelocale_cnt_minus_1);
 	}
 
+	__do_private_robust_list();
+	__do_orphaned_stdio_locks();
+
 	if (self->detached && self->map_base) {
 		/* Detached threads must avoid the kernel clear_child_tid
 		 * feature, since the virtual address will have been
@@ -109,7 +119,15 @@ static int start(void *p)
 	if (self->unblock_cancel)
 		__syscall(SYS_rt_sigprocmask, SIG_UNBLOCK,
 			SIGPT_SET, 0, _NSIG/8);
-	pthread_exit(self->start(self->start_arg));
+	__pthread_exit(self->start(self->start_arg));
+	return 0;
+}
+
+static int start_c11(void *p)
+{
+	pthread_t self = p;
+	int (*start)(void*) = (int(*)(void*)) self->start;
+	__pthread_exit((void *)(uintptr_t)start(self->start_arg));
 	return 0;
 }
 
@@ -133,9 +151,9 @@ static void init_file_lock(FILE *f)
 
 void *__copy_tls(unsigned char *);
 
-int pthread_create(pthread_t *restrict res, const pthread_attr_t *restrict attrp, void *(*entry)(void *), void *restrict arg)
+int __pthread_create(pthread_t *restrict res, const pthread_attr_t *restrict attrp, void *(*entry)(void *), void *restrict arg)
 {
-	int ret;
+	int ret, c11 = (attrp == __ATTRP_C11_THREAD);
 	size_t size, guard;
 	struct pthread *self, *new;
 	unsigned char *map = 0, *stack = 0, *tsd = 0, *stack_limit;
@@ -157,7 +175,7 @@ int pthread_create(pthread_t *restrict res, const pthread_attr_t *restrict attrp
 		self->tsd = (void **)__pthread_tsd_main;
 		libc.threaded = 1;
 	}
-	if (attrp) attr = *attrp;
+	if (attrp && !c11) attr = *attrp;
 
 	__acquire_ptc();
 
@@ -172,6 +190,7 @@ int pthread_create(pthread_t *restrict res, const pthread_attr_t *restrict attrp
 		if (need < size/8 && need < 2048) {
 			tsd = stack - __pthread_tsd_size;
 			stack = tsd - libc.tls_size;
+			memset(stack, 0, need);
 		} else {
 			size = ROUND(need);
 			guard = 0;
@@ -184,14 +203,14 @@ int pthread_create(pthread_t *restrict res, const pthread_attr_t *restrict attrp
 
 	if (!tsd) {
 		if (guard) {
-			map = mmap(0, size, PROT_NONE, MAP_PRIVATE|MAP_ANON, -1, 0);
+			map = __mmap(0, size, PROT_NONE, MAP_PRIVATE|MAP_ANON, -1, 0);
 			if (map == MAP_FAILED) goto fail;
-			if (mprotect(map+guard, size-guard, PROT_READ|PROT_WRITE)) {
-				munmap(map, size);
+			if (__mprotect(map+guard, size-guard, PROT_READ|PROT_WRITE)) {
+				__munmap(map, size);
 				goto fail;
 			}
 		} else {
-			map = mmap(0, size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
+			map = __mmap(0, size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0);
 			if (map == MAP_FAILED) goto fail;
 		}
 		tsd = map + size - __pthread_tsd_size;
@@ -223,7 +242,7 @@ int pthread_create(pthread_t *restrict res, const pthread_attr_t *restrict attrp
 	new->canary = self->canary;
 
 	a_inc(&libc.threads_minus_1);
-	ret = __clone(start, stack, flags, new, &new->tid, TP_ADJ(new), &new->tid);
+	ret = __clone((c11 ? start_c11 : start), stack, flags, new, &new->tid, TP_ADJ(new), &new->tid);
 
 	__release_ptc();
 
@@ -233,7 +252,7 @@ int pthread_create(pthread_t *restrict res, const pthread_attr_t *restrict attrp
 
 	if (ret < 0) {
 		a_dec(&libc.threads_minus_1);
-		if (map) munmap(map, size);
+		if (map) __munmap(map, size);
 		return EAGAIN;
 	}
 
@@ -251,3 +270,6 @@ fail:
 	__release_ptc();
 	return EAGAIN;
 }
+
+weak_alias(__pthread_exit, pthread_exit);
+weak_alias(__pthread_create, pthread_create);

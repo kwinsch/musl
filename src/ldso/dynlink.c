@@ -1603,10 +1603,14 @@ static int invalid_dso_handle(void *h)
 }
 void *dlopen(const char *file, int mode)
 {
+	strcpy(errbuf, "Dynamic loading not supported");
+	errflag = 1;
 	return 0;
 }
 void *__dlsym(void *restrict p, const char *restrict s, void *restrict ra)
 {
+	errflag = 1;
+	snprintf(errbuf, sizeof errbuf, "Symbol not found: %s", s);
 	return 0;
 }
 int __dladdr (const void *addr, Dl_info *info)

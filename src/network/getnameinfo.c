@@ -96,7 +96,7 @@ static void reverse_services(char *buf, int port, int dgram)
 		if ((p=strchr(line, '#'))) *p++='\n', *p=0;
 
 		for (p=line; *p && !isspace(*p); p++);
-		if (!p) continue;
+		if (!*p) continue;
 		*p++ = 0;
 		svport = strtoul(p, &z, 10);
 
@@ -113,11 +113,10 @@ static void reverse_services(char *buf, int port, int dgram)
 
 static int dns_parse_callback(void *c, int rr, const void *data, int len, const void *packet)
 {
-	char tmp[256];
 	if (rr != RR_PTR) return 0;
 	if (__dn_expand(packet, (const unsigned char *)packet + 512,
-	    data, tmp, sizeof tmp) > 0)
-		strcpy(c, tmp);
+	    data, c, 256) <= 0)
+		*(char *)c = 0;
 	return 0;
 	
 }
