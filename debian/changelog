@@ -1,33 +1,14 @@
 musl (1.1.5-1) unstable; urgency=low
 
-  * Import upstream version 1.1.5 
+  * Import upstream version 1.1.5
+  * New library-level C11 support
 
  -- Kevin Bortis <pkgs@bortis.ch>  Tue, 14 Oct 2014 21:13:35 +0200
 
 musl (1.1.4-1) unstable; urgency=low
 
-  * Import upstream version 1.1.4
-  * Switched back to default gcc
-
- -- Kevin Bortis <pkgs@bortis.ch>  Mon, 04 Aug 2014 21:22:20 +0200
-
-musl (1.1.3-1) unstable; urgency=low
-
-  * Import upstream version 1.1.3
-  * Avoid buggy gcc 4.9.0 and use gcc 4.8 instead 
-
- -- Kevin Bortis <pkgs@bortis.ch>  Thu, 26 Jun 2014 22:09:48 +0200
-
-musl (1.1.2-1) unstable; urgency=low
-
-  * Import upstream version 1.1.2
+  * Import upstream version 1.1.4. (Closes: #754758)
   * Fixes possible stack-based buffer overflow CVE-2014-3484 (Closes: #750815) 
-
- -- Kevin Bortis <pkgs@bortis.ch>  Tue, 10 Jun 2014 17:36:58 +0200
-
-musl (1.1.1-1) unstable; urgency=low
-
-  * Import upstream version 1.1.1
   * Includes fix for build regression on armhf and armel
 
  -- Kevin Bortis <pkgs@bortis.ch>  Mon, 26 May 2014 22:45:52 +0200
