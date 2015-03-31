@@ -63,6 +63,7 @@ extern "C" {
 
 #define PTHREAD_CANCEL_ENABLE 0
 #define PTHREAD_CANCEL_DISABLE 1
+#define PTHREAD_CANCEL_MASKED 2
 
 #define PTHREAD_CANCEL_DEFERRED 0
 #define PTHREAD_CANCEL_ASYNCHRONOUS 1
@@ -84,7 +85,9 @@ __attribute__((const))
 pthread_t pthread_self(void);
 
 int pthread_equal(pthread_t, pthread_t);
+#ifndef __cplusplus
 #define pthread_equal(x,y) ((x)==(y))
+#endif
 
 int pthread_setcancelstate(int, int *);
 int pthread_setcanceltype(int, int *);
