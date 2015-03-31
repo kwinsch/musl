@@ -1,0 +1,2 @@
+#! /usr/bin/dh-exec
+/lib/${MUSL_TRIPLE}/libc.so /usr/lib/${MUSL_TRIPLE}/libc.so

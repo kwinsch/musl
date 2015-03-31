@@ -2,7 +2,6 @@ musl (1.1.8-1) unstable; urgency=low
 
   * Import upstream version 1.1.8
   * Fixes possible stack-based buffer overflow CVE-2015-1817 (Closes: #781497)
-  * Removed unneeded link (Closes: #766812)
   * Includes new aarch64 port
 
  -- Kevin Bortis <pkgs@bortis.ch>  Tue, 31 Mar 2015 19:49:20 +0200
