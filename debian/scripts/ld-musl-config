@@ -4,7 +4,7 @@ for DIR in $(find /etc -maxdepth 1 -type d -name "ld-musl-*.d")
     ARCH=$(echo $DIR | sed 's@/etc/ld-musl-@@g' | sed 's@.d@@g')
     VALID_ARCH=0
     case ${ARCH} in
-      arm|armhf|amd64|i386|mips|mipsel)
+      aarch64|arm|armhf|amd64|i386|mips|mipsel)
         VALID_ARCH=1
         ;;
     esac
