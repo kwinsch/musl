@@ -1,3 +1,9 @@
+musl (1.1.5-2) unstable; urgency=low
+
+  * Fixes possible stack-based buffer overflow CVE-2015-1817 (Closes: #781497)
+
+ -- Kevin Bortis <pkgs@bortis.ch>  Tue, 31 Mar 2015 22:42:17 +0200
+
 musl (1.1.5-1) unstable; urgency=low
 
   [ Kevin Bortis ]
