@@ -339,7 +339,14 @@
 #define __NR_seccomp	383
 #define __NR_getrandom	384
 #define __NR_memfd_create	385
+#define __NR_bpf	386
+#define __NR_execveat	387
 
+#define __ARM_NR_breakpoint	0x0f0001
+#define __ARM_NR_cacheflush	0x0f0002
+#define __ARM_NR_usr26		0x0f0003
+#define __ARM_NR_usr32		0x0f0004
+#define __ARM_NR_set_tls	0x0f0005
 
 /* Repeated with SYS_ prefix */
 
@@ -684,3 +691,5 @@
 #define SYS_seccomp	383
 #define SYS_getrandom	384
 #define SYS_memfd_create	385
+#define SYS_bpf	386
+#define SYS_execveat	387

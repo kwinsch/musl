@@ -839,7 +839,7 @@ static reg_errcode_t parse_atom(tre_parse_ctx_t *ctx, const char *s)
 			s--;
 			break;
 		default:
-			if (isdigit(*s)) {
+			if (!ere && (unsigned)*s-'1' < 9) {
 				/* back reference */
 				int val = *s - '0';
 				node = tre_ast_new_literal(ctx->mem, BACKREF, val, ctx->position);
@@ -847,7 +847,7 @@ static reg_errcode_t parse_atom(tre_parse_ctx_t *ctx, const char *s)
 			} else {
 				/* extension: accept unknown escaped char
 				   as a literal */
-				node = tre_ast_new_literal(ctx->mem, *s, *s, ctx->position);
+				goto parse_literal;
 			}
 			ctx->position++;
 		}
@@ -1700,6 +1700,11 @@ tre_copy_ast(tre_mem_t mem, tre_stack_t *stack, tre_ast_node_t *ast,
 		*result = tre_ast_new_literal(mem, min, max, pos);
 		if (*result == NULL)
 		  status = REG_ESPACE;
+		else {
+		  tre_literal_t *p = (*result)->obj;
+		  p->class = lit->class;
+		  p->neg_classes = lit->neg_classes;
+		}
 
 		if (pos > *max_pos)
 		  *max_pos = pos;

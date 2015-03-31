@@ -25,7 +25,7 @@ struct chunk {
 };
 
 struct bin {
-	int lock[2];
+	volatile int lock[2];
 	struct chunk *head;
 	struct chunk *tail;
 };
@@ -33,10 +33,10 @@ struct bin {
 static struct {
 	uintptr_t brk;
 	size_t *heap;
-	uint64_t binmap;
+	volatile uint64_t binmap;
 	struct bin bins[64];
-	int brk_lock[2];
-	int free_lock[2];
+	volatile int brk_lock[2];
+	volatile int free_lock[2];
 	unsigned mmap_step;
 } mal;
 
@@ -154,10 +154,21 @@ void __dump_heap(int x)
 
 static struct chunk *expand_heap(size_t n)
 {
+	static int init;
 	struct chunk *w;
 	uintptr_t new;
 
 	lock(mal.brk_lock);
+
+	if (!init) {
+		mal.brk = __brk(0);
+#ifdef SHARED
+		mal.brk = mal.brk + PAGE_SIZE-1 & -PAGE_SIZE;
+#endif
+		mal.brk = mal.brk + 2*SIZE_ALIGN-1 & -SIZE_ALIGN;
+		mal.heap = (void *)mal.brk;
+		init = 1;
+	}
 
 	if (n > SIZE_MAX - mal.brk - 2*PAGE_SIZE) goto fail;
 	new = mal.brk + n + SIZE_ALIGN + PAGE_SIZE - 1 & -PAGE_SIZE;
@@ -186,6 +197,9 @@ static struct chunk *expand_heap(size_t n)
 		return area;
 	}
 
+	w = MEM_TO_CHUNK(mal.heap);
+	w->psize = 0 | C_INUSE;
+
 	w = MEM_TO_CHUNK(new);
 	w->psize = n | C_INUSE;
 	w->csize = 0 | C_INUSE;
@@ -201,44 +215,6 @@ fail:
 	unlock(mal.brk_lock);
 	errno = ENOMEM;
 	return 0;
-}
-
-static int init_malloc(size_t n)
-{
-	static int init, waiters;
-	int state;
-	struct chunk *c;
-
-	if (init == 2) return 0;
-
-	while ((state=a_swap(&init, 1)) == 1)
-		__wait(&init, &waiters, 1, 1);
-	if (state) {
-		a_store(&init, 2);
-		return 0;
-	}
-
-	mal.brk = __brk(0);
-#ifdef SHARED
-	mal.brk = mal.brk + PAGE_SIZE-1 & -PAGE_SIZE;
-#endif
-	mal.brk = mal.brk + 2*SIZE_ALIGN-1 & -SIZE_ALIGN;
-
-	c = expand_heap(n);
-
-	if (!c) {
-		a_store(&init, 0);
-		if (waiters) __wake(&init, 1, 1);
-		return -1;
-	}
-
-	mal.heap = (void *)c;
-	c->psize = 0 | C_INUSE;
-	free(CHUNK_TO_MEM(c));
-
-	a_store(&init, 2);
-	if (waiters) __wake(&init, -1, 1);
-	return 1;
 }
 
 static int adjust_size(size_t *n)
@@ -375,7 +351,6 @@ void *malloc(size_t n)
 	for (;;) {
 		uint64_t mask = mal.binmap & -(1ULL<<i);
 		if (!mask) {
-			if (init_malloc(n) > 0) continue;
 			c = expand_heap(n);
 			if (!c) return 0;
 			if (alloc_rev(c)) {
@@ -389,7 +364,7 @@ void *malloc(size_t n)
 		j = first_set(mask);
 		lock_bin(j);
 		c = mal.bins[j].head;
-		if (c != BIN_TO_CHUNK(j) && j == bin_index(c->csize)) {
+		if (c != BIN_TO_CHUNK(j)) {
 			if (!pretrim(c, n, i, j)) unbin(c, j);
 			unlock_bin(j);
 			break;

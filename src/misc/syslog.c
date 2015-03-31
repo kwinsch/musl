@@ -10,9 +10,8 @@
 #include <errno.h>
 #include <fcntl.h>
 #include "libc.h"
-#include "atomic.h"
 
-static int lock[2];
+static volatile int lock[2];
 static char log_ident[32];
 static int log_opt;
 static int log_facility = LOG_USER;
@@ -21,8 +20,11 @@ static int log_fd = -1;
 
 int setlogmask(int maskpri)
 {
-	if (maskpri) return a_swap(&log_mask, maskpri);
-	else return log_mask;
+	LOCK(lock);
+	int ret = log_mask;
+	if (maskpri) log_mask = maskpri;
+	UNLOCK(lock);
+	return ret;
 }
 
 static const struct {
@@ -46,8 +48,12 @@ void closelog(void)
 
 static void __openlog()
 {
-	log_fd = socket(AF_UNIX, SOCK_DGRAM|SOCK_CLOEXEC, 0);
-	if (log_fd >= 0) connect(log_fd, (void *)&log_addr, sizeof log_addr);
+	int fd = socket(AF_UNIX, SOCK_DGRAM|SOCK_CLOEXEC, 0);
+	if (fd < 0) return;
+	if (connect(fd, (void *)&log_addr, sizeof log_addr) < 0)
+		close(fd);
+	else
+		log_fd = fd;
 }
 
 void openlog(const char *ident, int opt, int facility)
@@ -77,7 +83,7 @@ static void _vsyslog(int priority, const char *message, va_list ap)
 	char timebuf[16];
 	time_t now;
 	struct tm tm;
-	char buf[256];
+	char buf[1024];
 	int errno_save = errno;
 	int pid;
 	int l, l2;
