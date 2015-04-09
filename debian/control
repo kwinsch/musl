@@ -11,7 +11,7 @@ XS-Testsuite: autopkgtest
 
 Package: musl
 Section: libs
-Architecture: arm64 armel armhf i386 amd64 mips mipsel
+Architecture: arm64 armel armhf i386 amd64 mips mipsel musl-linux-any
 Multi-Arch: same
 Depends: ${misc:Depends}
 Description: standard C library
@@ -23,8 +23,11 @@ Description: standard C library
 
 Package: musl-dev
 Section: libdevel
-Architecture: arm64 armel armhf i386 amd64 mips mipsel
-Depends: ${misc:Depends}, musl (= ${binary:Version})
+Multi-Arch: same
+Architecture: arm64 armel armhf i386 amd64 mips mipsel musl-linux-any
+Provides: libc-dev
+#                                                     this needs to be any-${ArchCPU}, but that is not supported
+Depends: ${misc:Depends}, musl (= ${binary:Version}), linux-libc-dev:any
 Description: standard C library development files
  musl is lightweight, fast, simple, free and strives
  to be correct in the sense of standards-conformance
@@ -35,9 +38,9 @@ Description: standard C library development files
 
 Package: musl-tools
 Section: devel
-Architecture: arm64 armel armhf i386 amd64 mips mipsel
+Architecture: arm64 armel armhf i386 amd64 mips mipsel musl-linux-any
 Depends: ${misc:Depends}, musl-dev (= ${binary:Version}),
-         gcc (>= 4.7.2)
+         gcc:any (>= 4.7.2)
 Description: standard C library tools
  musl is lightweight, fast, simple, free and strives
  to be correct in the sense of standards-conformance
