@@ -1,31 +1,33 @@
 #!/usr/bin/make -f
 export DH_OPTIONS
 
-DEB_HOST_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
-DEB_BUILD_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
-DEB_HOST_GNU_CPU ?= $(shell dpkg-architecture -qDEB_HOST_GNU_CPU)
-DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
+include /usr/share/dpkg/architecture.mk
 
 # Calculating musl based architecture
 MUSL_ARCH=$(DEB_HOST_GNU_CPU)
 MUSL_TRIPLE=$(DEB_HOST_GNU_CPU)-linux-musl
+GLIBC_TRIPLE=$(DEB_HOST_GNU_CPU)-linux-gnu
 
-ifeq ($(DEB_HOST_ARCH),armel)
+ifneq (,$(findstring armel, $(DEB_HOST_ARCH)))
   MUSL_ARCH=arm
   MUSL_TRIPLE=arm-linux-musleabi
+  GLIBC_TRIPLE=arm-linux-gnu
 endif
 
-ifeq ($(DEB_HOST_ARCH),armhf)
+ifneq (,$(findstring armhf, $(DEB_HOST_ARCH)))
   MUSL_ARCH=armhf
   MUSL_TRIPLE=arm-linux-musleabihf
+  GLIBC_TRIPLE=arm-linux-gnueabihf
 endif
 
-ifeq ($(DEB_HOST_ARCH),i386)
+ifneq (,$(findstring i386, $(DEB_HOST_ARCH)))
   MUSL_ARCH=i386
   MUSL_TRIPLE=i386-linux-musl
+  GLIBC_TRIPLE=i386-linux-gnu
 endif
 export MUSL_ARCH
 export MUSL_TRIPLE
+export GLIBC_TRIPLE
 
 # Cross build support
 ifeq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))  
