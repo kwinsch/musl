@@ -1,26 +1,23 @@
 #!/usr/bin/make -f
 export DH_OPTIONS
 
-DEB_HOST_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
-DEB_BUILD_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
-DEB_HOST_GNU_CPU ?= $(shell dpkg-architecture -qDEB_HOST_GNU_CPU)
-DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
+include /usr/share/dpkg/architecture.mk
 
 # Calculating musl based architecture
 MUSL_ARCH=$(DEB_HOST_GNU_CPU)
 MUSL_TRIPLE=$(DEB_HOST_GNU_CPU)-linux-musl
 
-ifeq ($(DEB_HOST_ARCH),armel)
+ifeq ($(DEB_HOST_ARCH_CPU),armel)
   MUSL_ARCH=arm
   MUSL_TRIPLE=arm-linux-musleabi
 endif
 
-ifeq ($(DEB_HOST_ARCH),armhf)
+ifeq ($(DEB_HOST_ARCH_CPU),armhf)
   MUSL_ARCH=armhf
   MUSL_TRIPLE=arm-linux-musleabihf
 endif
 
-ifeq ($(DEB_HOST_ARCH),i386)
+ifeq ($(DEB_HOST_ARCH_CPU),i386)
   MUSL_ARCH=i386
   MUSL_TRIPLE=i386-linux-musl
 endif
