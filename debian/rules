@@ -4,23 +4,24 @@ export DH_OPTIONS
 DEB_HOST_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_BUILD_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 DEB_HOST_GNU_CPU ?= $(shell dpkg-architecture -qDEB_HOST_GNU_CPU)
+DEB_HOST_ARCH_CPU ?= $(shell dpkg-architecture -qDEB_HOST_GNU_CPU)
 DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
 
 # Calculating musl based architecture
 MUSL_ARCH=$(DEB_HOST_GNU_CPU)
 MUSL_TRIPLE=$(DEB_HOST_GNU_CPU)-linux-musl
 
-ifeq ($(DEB_HOST_ARCH),armel)
+ifneq (,$(findstring armel,$(DEB_HOST_ARCH)))
   MUSL_ARCH=arm
   MUSL_TRIPLE=arm-linux-musleabi
 endif
 
-ifeq ($(DEB_HOST_ARCH),armhf)
+ifneq (,$(findstring armhf,$(DEB_HOST_ARCH)))
   MUSL_ARCH=armhf
   MUSL_TRIPLE=arm-linux-musleabihf
 endif
 
-ifeq ($(DEB_HOST_ARCH),i386)
+ifeq ($(DEB_HOST_ARCH_CPU),i386)
   MUSL_ARCH=i386
   MUSL_TRIPLE=i386-linux-musl
 endif
@@ -58,3 +59,7 @@ override_dh_auto_configure: debian/scripts/$(MUSL_TRIPLE).path
 override_dh_fixperms:
 	dh_fixperms --exclude libc.so
 
+ifneq (,$(findstring musl-linux-,$(DEB_HOST_ARCH)))
+override_dh_gencontrol:
+	dh_gencontrol -- -Vlibc-dev:Provides=libc-dev
+endif

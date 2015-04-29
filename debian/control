@@ -11,7 +11,7 @@ XS-Testsuite: autopkgtest
 
 Package: musl
 Section: libs
-Architecture: arm64 armel armhf i386 amd64 mips mipsel
+Architecture: arm64 musl-linux-arm64 armel musl-linux-armel armhf musl-linux-armhf i386 musl-linux-i386 amd64 musl-linux-amd64 mips musl-linux-mips mipsel musl-linux-mipsel
 Multi-Arch: same
 Depends: ${misc:Depends}
 Description: standard C library
@@ -23,7 +23,8 @@ Description: standard C library
 
 Package: musl-dev
 Section: libdevel
-Architecture: arm64 armel armhf i386 amd64 mips mipsel
+Architecture: arm64 musl-linux-arm64 armel musl-linux-armel armhf musl-linux-armhf i386 musl-linux-i386 amd64 musl-linux-amd64 mips musl-linux-mips mipsel musl-linux-mipsel
+Provides: ${libc-dev:Provides}
 Depends: ${misc:Depends}, musl (= ${binary:Version})
 Description: standard C library development files
  musl is lightweight, fast, simple, free and strives
