@@ -61,5 +61,5 @@ override_dh_fixperms:
 
 ifneq (,$(findstring musl-linux-,$(DEB_HOST_ARCH)))
 override_dh_gencontrol:
-	dh_gencontrol -- -Vlibc-dev:Provides=libc-dev
+	dh_gencontrol -- -Vlibc-dev:Provides=libc-dev -Vlinux-libc-dev:Provides=linux-libc-dev
 endif
