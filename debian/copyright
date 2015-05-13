@@ -150,9 +150,12 @@ License: public-domain
 
 Files: src/setjmp/x32/longjmp.s
        src/setjmp/x32/setjmp.s
-       src/setjmp/x32/sigsetjmp.s
+       src/setjmp/x86_64/longjmp.s
+       src/setjmp/x86_64/setjmp.s
        src/thread/x32/__set_thread_area.s
        src/thread/x32/__unmapself.s
+       src/thread/x86_64/__set_thread_area.s
+       src/thread/x86_64/__unmapself.s
 Copyright: 2011-2012 Nicholas J. Kain
 License: MIT
  
