@@ -85,9 +85,9 @@ src/internal/version.h: $(wildcard VERSION .git)
 
 src/internal/version.lo: src/internal/version.h
 
-src/ldso/dynlink.lo: arch/$(ARCH)/reloc.h
+src/ldso/dlstart.lo src/ldso/dynlink.lo: src/internal/dynlink.h arch/$(ARCH)/reloc.h
 
-crt/crt1.o crt/Scrt1.o: $(wildcard arch/$(ARCH)/crt_arch.h)
+crt/crt1.o crt/Scrt1.o src/ldso/dlstart.lo: $(wildcard arch/$(ARCH)/crt_arch.h)
 
 crt/Scrt1.o: CFLAGS += -fPIC
 
@@ -96,6 +96,15 @@ $(OPTIMIZE_SRCS:%.c=%.o) $(OPTIMIZE_SRCS:%.c=%.lo): CFLAGS += -O3
 
 MEMOPS_SRCS = src/string/memcpy.c src/string/memmove.c src/string/memcmp.c src/string/memset.c
 $(MEMOPS_SRCS:%.c=%.o) $(MEMOPS_SRCS:%.c=%.lo): CFLAGS += $(CFLAGS_MEMOPS)
+
+NOSSP_SRCS = $(wildcard crt/*.c) \
+	src/env/__libc_start_main.c src/env/__init_tls.c \
+	src/thread/__set_thread_area.c src/env/__stack_chk_fail.c \
+	src/string/memset.c src/string/memcpy.c \
+	src/ldso/dlstart.c src/ldso/dynlink.c
+$(NOSSP_SRCS:%.c=%.o) $(NOSSP_SRCS:%.c=%.lo): CFLAGS += $(CFLAGS_NOSSP)
+
+$(CRT_LIBS): CFLAGS += -DCRT
 
 # This incantation ensures that changes to any subarch asm files will
 # force the corresponding object file to be rebuilt, even if the implicit

@@ -3,6 +3,11 @@
 #include "syscall.h"
 #include "libc.h"
 
+#ifdef SHARED
+__attribute__((__visibility__("hidden")))
+#endif
+long __cancel(), __cp_cancel(), __syscall_cp_asm(), __syscall_cp_c();
+
 long __cancel()
 {
 	pthread_t self = __pthread_self();
@@ -30,7 +35,7 @@ long __syscall_cp_c(syscall_arg_t nr,
 	long r;
 	int st;
 
-	if (!libc.has_thread_pointer || (st=(self=__pthread_self())->canceldisable)
+	if ((st=(self=__pthread_self())->canceldisable)
 	    && (st==PTHREAD_CANCEL_DISABLE || nr==SYS_close))
 		return __syscall(nr, u, v, w, x, y, z);
 
@@ -47,12 +52,16 @@ static void _sigaddset(sigset_t *set, int sig)
 	set->__bits[s/8/sizeof *set->__bits] |= 1UL<<(s&8*sizeof *set->__bits-1);
 }
 
+#ifdef SHARED
+__attribute__((__visibility__("hidden")))
+#endif
+extern const char __cp_begin[1], __cp_end[1];
+
 static void cancel_handler(int sig, siginfo_t *si, void *ctx)
 {
 	pthread_t self = __pthread_self();
 	ucontext_t *uc = ctx;
 	const char *ip = ((char **)&uc->uc_mcontext)[CANCEL_REG_IP];
-	extern const char __cp_begin[1], __cp_end[1];
 
 	a_barrier();
 	if (!self->cancel || self->canceldisable == PTHREAD_CANCEL_DISABLE) return;
@@ -69,7 +78,6 @@ static void cancel_handler(int sig, siginfo_t *si, void *ctx)
 
 void __testcancel()
 {
-	if (!libc.has_thread_pointer) return;
 	pthread_t self = __pthread_self();
 	if (self->cancel && !self->canceldisable)
 		__cancel();

@@ -1,22 +1,26 @@
-// long __tlsdesc_static(long *a)
+// size_t __tlsdesc_static(size_t *a)
 // {
 // 	return a[1];
 // }
 .global __tlsdesc_static
+.hidden __tlsdesc_static
 .type __tlsdesc_static,@function
 __tlsdesc_static:
 	ldr x0,[x0,#8]
 	ret
 
-// long __tlsdesc_dynamic(long *a)
+.hidden __tls_get_new
+
+// size_t __tlsdesc_dynamic(size_t *a)
 // {
 // 	struct {size_t modidx,off;} *p = (void*)a[1];
 // 	size_t *dtv = *(size_t**)(tp + 16 - 8);
 // 	if (p->modidx <= dtv[0])
 // 		return dtv[p->modidx] + p->off - tp;
-// 	return __tls_get_addr(p) - tp;
+// 	return __tls_get_new(p) - tp;
 // }
 .global __tlsdesc_dynamic
+.hidden __tlsdesc_dynamic
 .type __tlsdesc_dynamic,@function
 __tlsdesc_dynamic:
 	stp x1,x2,[sp,#-32]!
@@ -37,8 +41,8 @@ __tlsdesc_dynamic:
 	ldp x1,x2,[sp],#32
 	ret
 
-	// save all registers __tls_get_addr may clobber
-	// ugly because addr offset must be in [-512,509]
+	// save all registers __tls_get_new may clobber
+	// update sp in two steps because offset must be in [-512,509]
 1:	stp x29,x30,[sp,#-160]!
 	stp x5,x6,[sp,#16]
 	stp x7,x8,[sp,#32]
@@ -63,7 +67,7 @@ __tlsdesc_dynamic:
 	stp q26,q27,[sp,#384]
 	stp q28,q29,[sp,#416]
 	stp q30,q31,[sp,#448]
-	bl __tls_get_addr
+	bl __tls_get_new
 	mrs x1,tpidr_el0
 	ldp q4,q5,[sp,#32]
 	ldp q6,q7,[sp,#64]
