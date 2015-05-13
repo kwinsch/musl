@@ -16,7 +16,7 @@ struct pthread {
 	struct pthread *self;
 	void **dtv, *unused1, *unused2;
 	uintptr_t sysinfo;
-	uintptr_t canary;
+	uintptr_t canary, canary2;
 	pid_t tid, pid;
 	int tsd_used, errno_val;
 	volatile int cancel, canceldisable, cancelasync;
@@ -44,7 +44,10 @@ struct pthread {
 	volatile int exitlock[2];
 	volatile int startlock[2];
 	unsigned long sigmask[_NSIG/8/sizeof(long)];
+	char *dlerror_buf;
+	int dlerror_flag;
 	void *stdio_locks;
+	uintptr_t canary_at_end;
 	void **dtv_copy;
 };
 
@@ -87,6 +90,10 @@ struct __timer {
 
 #include "pthread_arch.h"
 
+#ifndef CANARY
+#define CANARY canary
+#endif
+
 #define SIGTIMER 32
 #define SIGCANCEL 33
 #define SIGSYNCCALL 34
@@ -108,6 +115,10 @@ int __libc_sigprocmask(int, const sigset_t *, sigset_t *);
 void __lock(volatile int *);
 void __unmapself(void *, size_t);
 
+void __vm_wait(void);
+void __vm_lock(void);
+void __vm_unlock(void);
+
 int __timedwait(volatile int *, int, clockid_t, const struct timespec *, int);
 int __timedwait_cp(volatile int *, int, clockid_t, const struct timespec *, int);
 void __wait(volatile int *, volatile int *, int, int);
@@ -119,9 +130,9 @@ static inline void __wake(volatile void *addr, int cnt, int priv)
 	__syscall(SYS_futex, addr, FUTEX_WAKE, cnt);
 }
 
-void __acquire_ptc();
-void __release_ptc();
-void __inhibit_ptc();
+void __acquire_ptc(void);
+void __release_ptc(void);
+void __inhibit_ptc(void);
 
 void __block_all_sigs(void *);
 void __block_app_sigs(void *);

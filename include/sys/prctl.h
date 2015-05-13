@@ -116,6 +116,14 @@ struct prctl_mm_map {
 #define PR_SET_THP_DISABLE      41
 #define PR_GET_THP_DISABLE      42
 
+#define PR_MPX_ENABLE_MANAGEMENT  43
+#define PR_MPX_DISABLE_MANAGEMENT 44
+
+#define PR_SET_FP_MODE          45
+#define PR_GET_FP_MODE          46
+#define PR_FP_MODE_FR (1 << 0)
+#define PR_FP_MODE_FRE (1 << 1)
+
 int prctl (int, ...);
 
 #ifdef __cplusplus

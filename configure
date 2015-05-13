@@ -27,6 +27,7 @@ Optional features:
   --enable-optimize=...   optimize listed components for speed over size [auto]
   --enable-debug          build with debugging information [disabled]
   --enable-warnings       build with recommended warnings flags [disabled]
+  --enable-visibility     use global visibility options to optimize PIC [auto]
   --enable-gcc-wrapper    build musl-gcc toolchain wrapper [auto]
   --disable-shared        inhibit building shared library [enabled]
   --disable-static        inhibit building static library [enabled]
@@ -79,7 +80,7 @@ fi
 tryflag () {
 printf "checking whether compiler accepts %s... " "$2"
 echo "typedef int x;" > "$tmpc"
-if $CC "$2" -c -o /dev/null "$tmpc" >/dev/null 2>&1 ; then
+if $CC $2 -c -o /dev/null "$tmpc" >/dev/null 2>&1 ; then
 printf "yes\n"
 eval "$1=\"\${$1} \$2\""
 eval "$1=\${$1# }"
@@ -111,6 +112,7 @@ fi
 CFLAGS_C99FSE=
 CFLAGS_AUTO=
 CFLAGS_MEMOPS=
+CFLAGS_NOSSP=
 LDFLAGS_AUTO=
 OPTIMIZE_GLOBS=
 prefix=/usr/local/musl
@@ -123,6 +125,7 @@ target=
 optimize=auto
 debug=no
 warnings=no
+visibility=auto
 shared=auto
 static=yes
 wrapper=auto
@@ -147,6 +150,8 @@ case "$arg" in
 --disable-debug|--enable-debug=no) debug=no ;;
 --enable-warnings|--enable-warnings=yes) warnings=yes ;;
 --disable-warnings|--enable-warnings=no) warnings=no ;;
+--enable-visibility|--enable-visibility=yes) visibility=yes ;;
+--disable-visibility|--enable-visibility=no) visibility=no ;;
 --enable-gcc-wrapper|--enable-gcc-wrapper=yes) wrapper=yes ;;
 --disable-gcc-wrapper|--enable-gcc-wrapper=no) wrapper=no ;;
 --enable-*|--disable-*|--with-*|--without-*|--*dir=*|--build=*) ;;
@@ -291,6 +296,13 @@ CFLAGS_C99FSE="$CFLAGS_C99FSE -D__may_alias__="
 fi
 
 #
+# Check for options to disable stack protector, which needs to be
+# disabled for a few early-bootstrap translation units. If not found,
+# this is not an error; we assume the toolchain does not do ssp.
+#
+tryflag CFLAGS_NOSSP -fno-stack-protector
+
+#
 # Check for options that may be needed to prevent the compiler from
 # generating self-referential versions of memcpy,, memmove, memcmp,
 # and memset. Really, we should add a check to determine if this
@@ -379,10 +391,12 @@ tryflag CFLAGS_AUTO -Wa,--noexecstack
 # extensions enabled by default. This is bad for making static binaries.
 # We cheat and use i486 rather than i386 because i386 really does not
 # work anyway (issues with atomic ops).
+# Some build environments pass -march and -mtune options via CC, so
+# check both CC and CFLAGS.
 #
 if test "$ARCH" = "i386" ; then
-fnmatch '-march=*|*\ -march=*' "$CFLAGS" || tryldflag CFLAGS_AUTO -march=i486
-fnmatch '-mtune=*|*\ -mtune=*' "$CFLAGS" || tryldflag CFLAGS_AUTO -mtune=generic
+fnmatch '-march=*|*\ -march=*' "$CC $CFLAGS" || tryldflag CFLAGS_AUTO -march=i486
+fnmatch '-mtune=*|*\ -mtune=*' "$CC $CFLAGS" || tryldflag CFLAGS_AUTO -mtune=generic
 fi
 
 #
@@ -407,8 +421,32 @@ tryflag CFLAGS_AUTO -Wno-unknown-pragmas
 tryflag CFLAGS_AUTO -Wno-pointer-to-int-cast
 fi
 
+if test "x$visibility" = xauto ; then
+# This test checks toolchain support for several things:
+# - the -include option
+# - the attributes/pragmas used in vis.h
+# - linking code that takes the address of protected symbols
+printf "checking whether global visibility preinclude works... "
+echo 'int (*fp)(void);' > "$tmpc"
+echo 'int foo(void) { }' >> "$tmpc"
+echo 'int bar(void) { fp = foo; return foo(); }' >> "$tmpc"
+if $CC $CFLAGS_C99FSE $CPPFLAGS $CFLAGS \
+  -DSHARED -fPIC -I./src/internal -include vis.h \
+  -nostdlib -shared -Wl,-Bsymbolic-functions \
+  -o /dev/null "$tmpc" >/dev/null 2>&1 ; then
+visibility=yes
+else
+visibility=no
+fi
+printf "%s\n" "$visibility"
+fi
+
+if test "x$visibility" = xyes ; then
+CFLAGS_AUTO="$CFLAGS_AUTO -include vis.h"
+CFLAGS_AUTO="${CFLAGS_AUTO# }"
+fi
+
 # Some patched GCC builds have these defaults messed up...
-tryflag CFLAGS_AUTO -fno-stack-protector
 tryldflag LDFLAGS_AUTO -Wl,--hash-style=both
 
 test "$shared" = "no" || {
@@ -430,7 +468,7 @@ printf "using compiler runtime libraries: %s\n" "$LIBCC"
 
 # Figure out arch variants for archs with variants
 SUBARCH=
-t="$CFLAGS_C99FSE $CPPFLAGS $CFLAGS_AUTO $CFLAGS"
+t="$CFLAGS_C99FSE $CPPFLAGS $CFLAGS"
 
 if test "$ARCH" = "x86_64" ; then
 trycppif __ILP32__ "$t" && ARCH=x32
@@ -526,6 +564,7 @@ CC = $CC
 CFLAGS = $CFLAGS_AUTO $CFLAGS
 CFLAGS_C99FSE = $CFLAGS_C99FSE
 CFLAGS_MEMOPS = $CFLAGS_MEMOPS
+CFLAGS_NOSSP = $CFLAGS_NOSSP
 CPPFLAGS = $CPPFLAGS
 LDFLAGS = $LDFLAGS_AUTO $LDFLAGS
 CROSS_COMPILE = $CROSS_COMPILE
