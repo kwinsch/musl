@@ -2,9 +2,10 @@ musl (1.1.9-1) unstable; urgency=low
 
   [ Kevin Bortis ]
   * Import upstream version 1.1.9 
+  * Provide linux-libc-dev on musl-linux-any
   
   [ Helmut Grohne ]
-  * Build musl for the corresponding musl-linux-any
+  * Build musl for the corresponding musl-linux-any (Closes: #783078)
   * Provide libc-dev on musl-linux-any
 
  -- Kevin Bortis <pkgs@bortis.ch>  Wed, 29 Apr 2015 18:16:36 +0200
