@@ -46,6 +46,14 @@ export CFLAGS
 export CPPFLAGS
 export LDFLAGS
 
+# Substitue control file variables debending on the debian libc type
+# If musl is the native libc, we can provide libc and depend on linux-libc-dev
+ifneq (,$(findstring musl-linux-,$(DEB_HOST_ARCH)))
+  GENCTRL_OPTIONS = -Vlibc-dev:Provides=libc-dev -Vlinux-libc-dev:Depends=linux-libc-dev 
+else
+  GENCTRL_OPTIONS = -Vlinux-musl-dev:Recommends=linux-musl-dev
+endif
+
 %:
 	dh $@ --parallel
 
@@ -59,7 +67,5 @@ override_dh_auto_configure: debian/scripts/$(MUSL_TRIPLE).path
 override_dh_fixperms:
 	dh_fixperms --exclude libc.so
 
-ifneq (,$(findstring musl-linux-,$(DEB_HOST_ARCH)))
 override_dh_gencontrol:
-	dh_gencontrol -- -Vlibc-dev:Provides=libc-dev -Vlinux-libc-dev:Provides=linux-libc-dev
-endif
+	dh_gencontrol -- $(GENCTRL_OPTIONS)
