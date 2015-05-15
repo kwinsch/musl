@@ -1,0 +1,34 @@
+--- a/arch/arm/crt_arch.h
++++ b/arch/arm/crt_arch.h
+@@ -4,12 +4,14 @@
+ START ": \n"
+ "	mov fp, #0 \n"
+ "	mov lr, #0 \n"
+-"	mov a1, sp \n"
+ "	ldr a2, 1f \n"
+-"2:	add a2, pc, a2 \n"
+-"	and sp, sp, #-16 \n"
++"	add a2, pc, a2 \n"
++"	mov a1, sp \n"
++"2:	and ip, a1, #-16 \n"
++"	mov sp, ip \n"
+ "	bl " START "_c \n"
+ ".weak _DYNAMIC \n"
+ ".hidden _DYNAMIC \n"
+-"1:	.word _DYNAMIC-2b-8 \n"
++".align 2 \n"
++"1:	.word _DYNAMIC-2b \n"
+ );
+--- a/arch/arm/reloc.h
++++ b/arch/arm/reloc.h
+@@ -28,5 +28,10 @@
+ #define REL_TPOFF       R_ARM_TLS_TPOFF32
+ //#define REL_TLSDESC     R_ARM_TLS_DESC
+ 
++#ifdef __thumb__
++#define CRTJMP(pc,sp) __asm__ __volatile__( \
++	"mov sp,%1 ; bx %0" : : "r"(pc), "r"(sp) : "memory" )
++#else
+ #define CRTJMP(pc,sp) __asm__ __volatile__( \
+ 	"mov sp,%1 ; tst %0,#1 ; moveq pc,%0 ; bx %0" : : "r"(pc), "r"(sp) : "memory" )
++#endif
